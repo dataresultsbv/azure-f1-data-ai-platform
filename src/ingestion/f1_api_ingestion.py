@@ -47,10 +47,15 @@ def main():
     start_season = int(os.getenv("START_SEASON", "2014"))
     end_season = int(os.getenv("END_SEASON", "2025"))
     
-    # Dynamisch bepalen waar de 'data' hoofdmap ligt ten opzichte van dit script
-    # Default zoekt naar de centrale 'data/' map in de root van je repository
-    default_data_dir = Path(__file__).resolve().parents[2] / "data"
-    base_dir = Path(os.getenv("DATA_DIR", str(default_data_dir)))
+    # Bepaal de hoofdmap voor de data-opslag.
+    # Als DATA_DIR in de environment staat (zoals in Docker), gebruiken we die.
+    # Zo niet (lokaal), dan pakken we de standaard `./data` map.
+    env_data_dir = os.getenv("DATA_DIR")
+    if env_data_dir:
+        base_dir = Path(env_data_dir)
+    else:
+        # Veilige lokale fallback: zoekt naar 'data' in de huidige werkmap
+        base_dir = Path.cwd() / "data"
     
     logger.info(f"Loadrange configured:{start_season} - {end_season}")
     logger.info(f"Ingesting into: {base_dir}")
