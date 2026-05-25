@@ -1,0 +1,14 @@
+# Terraform runtime folders
+**/.terraform/
+.terraform*
+
+# LoLocal state
+*.tfstate
+*.tfstate.*
+
+# Crash logs
+crash.log
+
+# Terraform variable files
+*.tfvars
+*.tfvars.json

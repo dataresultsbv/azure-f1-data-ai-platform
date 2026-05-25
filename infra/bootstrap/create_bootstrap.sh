@@ -1,3 +1,26 @@
+#  Hoe lossen we dat op een enterprise-manier op in GitHub?
+#  Zodra we over een paar stappen je GitHub workflow gaan inrichten, gaan we dit oplossen met Dynamic IP Whitelisting binnen de workflow zelf. Jouw workflow-bestand (.github/workflows/deploy.yml) krijgt dan de volgende drie opeenvolgende stappen:
+#  
+#  De Deur Openzetten (Pre-Deploy): De GitHub runner vraagt via een snel CLI-commando zijn eigen tijdelijke IP-adres op en voegt dit toe aan de firewall van je tfstate Storage Account:
+#  
+#  YAML
+#  - name: Whitelist GitHub Runner IP
+#    run: |
+#      RUNNER_IP=$(curl -s https://ifconfig.me)
+#      az storage account network-rule add --resource-group rg-afdap-tfstate --account-name saafdap123987123 --ip-address $RUNNER_IP
+#  De Terraform Run:
+#  Terraform voert de plan of apply uit. Omdat de runner zichzelf net toegang heeft verleend, kan hij perfect bij de state.
+#  
+#  De Deur Weer Sluiten (Post-Deploy / always()):
+#  Zodra Terraform klaar is (of als de run crasht!), schiet er een opruimstap in die het IP-adres van de runner direct weer uit de firewall wist:
+#  
+#  YAML
+#  - name: Remove GitHub Runner IP from Whitelist
+#    if: always()
+#    run: |
+#      RUNNER_IP=$(curl -s https://ifconfig.me)
+#      az storage account network-rule remove --resource-group rg-afdap-tfstate --account-
+
 #Linux script to be run in bash
 #!/usr/bin/env bash
 
@@ -76,6 +99,34 @@ if [ "$CONTAINER_EXISTS" == "false" ]; then
 else
     echo "INFO - Blob Container '$CONTAINER_NAME' already exists."
 fi  
+
+###########################################
+######### STORAGE NETWORK SECURITY #########
+###########################################
+
+echo "STATUS - Configuring Enterprise Network Security for TFState Storage..."
+
+CURRENT_IP=$(curl -s https://ifconfig.me)
+
+if [ -n "$CURRENT_IP" ]; then
+    echo "STATUS - Adding youre current IP $CURRENT_IP to Storage Firewall..." 
+    az storage account network-rule add \
+      --resource-group "$RESOURCE_GROUP_NAME" \
+      --account-name "$STORAGE_ACCOUNT_NAME" \
+      --ip-address "$CURRENT_IP" \
+      --output none
+      
+    az storage account update \
+      --name "$STORAGE_ACCOUNT_NAME" \
+      --resource-group "$RESOURCE_GROUP_NAME" \
+      --default-action Deny \
+      --bypass AzureServices \
+      --output none
+      
+    echo "SUCCES - Storage Account is now locked down. Only your IP ($CURRENT_IP) and trusted Azure Services have access."
+else
+    echo "WARNING - Could not detect public IP. Skipping firewall lockdown to prevent lockout."
+fi
 
 ###########################################
 ############ CREATE BACKEND.TF ############
