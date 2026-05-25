@@ -13,3 +13,17 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable network {
+  type = map(object(
+    {
+      vnet_address_space  = list(string)
+      snets               = map(object(
+        {
+          snet_address_prefix = list(string)
+          delegation          = optional(string, null)
+        }
+      ))
+    }
+  ))
+}

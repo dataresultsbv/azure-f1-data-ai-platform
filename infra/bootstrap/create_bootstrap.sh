@@ -53,7 +53,7 @@ echo "SUCCES - Azure CLI connection is active."
 RG_EXISTS=$(az group exists --name "$RESOURCE_GROUP_NAME" --output tsv)
 
 if [ "$RG_EXISTS" == "false" ]; then
-    echo "STATUS - Creating Resource Group '$RESOURCE_GROUP_NAME' in $LOCATION..."
+    echo "STATUS - Creating Resource Group '$RESOURCE_GROUP_NAME'..."
     az group create --name "$RESOURCE_GROUP_NAME" --location "$LOCATION" -o table
     echo "SUCCES - Succesfully created '$RESOURCE_GROUP_NAME'"
 else
