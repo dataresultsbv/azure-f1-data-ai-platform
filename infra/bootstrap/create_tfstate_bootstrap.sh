@@ -1,4 +1,3 @@
-#Linux script to be run in bash
 #!/usr/bin/env bash
 
 # -e: Exit on error
@@ -55,6 +54,7 @@ if [ "$SA_NAME_AVAILABLE" == "true" ]; then
       --kind StorageV2 \
       --allow-blob-public-access false \
       --min-tls-version TLS1_2 \
+      --default-action Allow \
       -o table
     echo "SUCCES - Created '$STORAGE_ACCOUNT_NAME'"
 else
@@ -85,27 +85,14 @@ fi
 
 echo "STATUS - Configuring Enterprise Network Security for TFState Storage..."
 
-CURRENT_IP=$(curl -s https://ifconfig.me)
-
-if [ -n "$CURRENT_IP" ]; then
-    echo "STATUS - Adding youre current IP $CURRENT_IP to Storage Firewall..." 
-    az storage account network-rule add \
-      --resource-group "$RESOURCE_GROUP_NAME" \
-      --account-name "$STORAGE_ACCOUNT_NAME" \
-      --ip-address "$CURRENT_IP" \
-      --output none
-      
-    az storage account update \
-      --name "$STORAGE_ACCOUNT_NAME" \
-      --resource-group "$RESOURCE_GROUP_NAME" \
-      --default-action Deny \
-      --bypass AzureServices \
-      --output none
-      
-    echo "SUCCES - Storage Account is now locked down. Only your IP ($CURRENT_IP) and trusted Azure Services have access."
-else
-    echo "WARNING - Could not detect public IP. Skipping firewall lockdown to prevent lockout."
-fi
+echo "STATUS - Configuring Network Rules for TFState Storage..."
+az storage account update \
+  --name "$STORAGE_ACCOUNT_NAME" \
+  --resource-group "$RESOURCE_GROUP_NAME" \
+  --default-action Allow \
+  --bypass AzureServices \
+  --output none
+echo "SUCCES - Network access is set to Allow. Authentication is fully governed by OIDC Identity tokens."
 
 ###########################################
 ####### ASSIGN IAM ROLES TO MI ############
@@ -131,27 +118,28 @@ echo "SUCCES - Managed Identity now has Data Contributor access to TFState Stora
 ############ CREATE BACKEND.TF ############
 ###########################################
 
-echo "STATUS - Generating backend.tf config for V1..."
-
 INFRA_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TARGET_ENV_DIR="${INFRA_DIR}/env/v1"
-BACKEND_OUTPUT_PATH="${TARGET_ENV_DIR}/backend.tf"
 
-mkdir -p "$TARGET_ENV_DIR"
+for ENV in "v1" "v2"; do
+  echo "STATUS - Generating backend.tf config for $ENV..."
+  TARGET_ENV_DIR="${INFRA_DIR}/env/${ENV}"
+  BACKEND_OUTPUT_PATH="${TARGET_ENV_DIR}/backend.tf"
 
-cat << EOF > "$BACKEND_OUTPUT_PATH"
+  mkdir -p "$TARGET_ENV_DIR"
+
+  cat << EOF > "$BACKEND_OUTPUT_PATH"
 terraform {
   backend "azurerm" {
     resource_group_name  = "$RESOURCE_GROUP_NAME"
     storage_account_name = "$STORAGE_ACCOUNT_NAME"
     container_name       = "$CONTAINER_NAME"
-    key                  = "v1/terraform.tfstate"
+    key                  = "${ENV}/terraform.tfstate"
     use_oidc             = true
   }
 }
 EOF
-
-echo "SUCCES - Wrote backend.tf to $BACKEND_OUTPUT_PATH"
+  echo "SUCCES - Wrote backend.tf to $BACKEND_OUTPUT_PATH"
+done
 
 echo "================================================================"
 echo "Succesfully finished bootstrap.sh script"

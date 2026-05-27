@@ -37,8 +37,8 @@ module "storage" {
   depends_on = [module.network]
 }
 
-module "compute" {
-  source               = "../../modules/compute"
+module "containerapp" {
+  source               = "../../modules/compute/containerapp"
   resource_group_name  = module.resource_group.resource_group_name
   resource_name_suffix = var.resource_name_suffix
   location             = var.location

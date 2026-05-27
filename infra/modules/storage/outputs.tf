@@ -3,7 +3,7 @@ output "storage_account_id" {
   description = "The ID of the created Storage Account"
 }
 
-output "primary_dfs_endpoint" {
-  value       = azurerm_storage_account.adls.primary_dfs_endpoint
-  description = "The DFS endpoint for ADLS Gen2 connections"
+output "storage_account_name" {
+  value       = azurerm_storage_account.adls.name
+  description = "The name for the storage account"
 }

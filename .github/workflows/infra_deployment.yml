@@ -5,6 +5,7 @@ on:
     branches: [ "main" ]
     paths:
       - 'infra/env/**'
+      - 'infra/modules/**'
   workflow_dispatch:
     inputs:
       environment_version:
@@ -20,128 +21,60 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  terraform-plan:
-    name: 'Terraform Plan'
+  matrix-prep:
+    name: 'Determine Deployment Scope'
     runs-on: ubuntu-latest
-    env:
-      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-      ARM_USE_OIDC: true
     outputs:
-      detected_version: ${{ steps.set-version.outputs.VERSION }}
-
+      matrix-envs: ${{ steps.set-matrix.outputs.matrix-envs }}
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Detect Changed Environment
+    - name: Detect Changed Paths
       id: filter
       uses: dorny/paths-filter@v3
       with:
         filters: |
-          v1: ['infra/env/v1/**']
-          v2: ['infra/env/v2/**']
+          v1:
+            - 'infra/env/v1/**'
+            - 'infra/modules/**'
+          v2:
+            - 'infra/env/v2/**'
+            - 'infra/modules/**'
 
-    - name: Set Environment Version
-      id: set-version
+    - name: Generate Matrix Output
+      id: set-matrix
       run: |
+        ENV_LIST="[]"
         if [ ! -z "${{ github.event.inputs.environment_version }}" ]; then
-          VERSION="${{ github.event.inputs.environment_version }}"
-          echo "Deployment triggered via manual override."
-        elif [ "${{ steps.filter.outputs.v2 }}" == 'true' ]; then
-          VERSION="v2"
-          echo "Deployment triggered via automated path detection (v2)."
+          ENV_LIST="[\"${{ github.event.inputs.environment_version }}\"]"
         else
-          VERSION="v1"
-          echo "Deployment triggered via automated path detection or fallback (v1)."
+          if [ "${{ steps.filter.outputs.v1 }}" == 'true' ]; then
+            ENV_LIST=$(echo $ENV_LIST | jq '. + ["v1"]')
+          fi
+          if [ "${{ steps.filter.outputs.v2 }}" == 'true' ]; then
+            ENV_LIST=$(echo $ENV_LIST | jq '. + ["v2"]')
+          fi
         fi
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
-        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "matrix-envs=$ENV_LIST" >> $GITHUB_OUTPUT
 
-    - name: Azure Login for CLI
-      uses: azure/login@v2
-      with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-    - name: Whitelist GitHub Runner IP on tfstate sa-account
-      run: |
-        RUNNER_IP=$(curl -s https://ifconfig.me)
-        echo "Runner IP is $RUNNER_IP"
-        az storage account network-rule add \
-          --resource-group "rg-afdap-tfstate" \
-          --account-name "satfstateafdap123987123" \
-          --ip-address "$RUNNER_IP"
-        sleep 10
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: 1.7.0
-
-    - name: Terraform Init
-      run: terraform init -reconfigure
-      working-directory: ./infra/env/${{ env.VERSION }}
-
-    - name: Terraform Format Check
-      run: terraform fmt -check
-      working-directory: ./infra/env/${{ env.VERSION }}
-
-    - name: Terraform Plan
-      run: terraform plan -input=false -out=tfplan
-      working-directory: ./infra/env/${{ env.VERSION }}
-
-    - name: Upload Terraform Plan Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: tfplan-${{ env.VERSION }}
-        path: ./infra/env/${{ env.VERSION }}/tfplan
-        retention-days: 1
-
-    - name: Remove GitHub Runner IP from sa-tfstate Whitelist
-      if: always()
-      run: |
-        RUNNER_IP=$(curl -s https://ifconfig.me)
-        az storage account network-rule remove \
-          --resource-group "rg-afdap-tfstate" \
-          --account-name "satfstateafdap123987123" \
-          --ip-address "$RUNNER_IP"
-
-  terraform-apply:
-    name: 'Terraform Apply'
+  terraform-plan:
+    name: 'Terraform Plan (${{ matrix.env }})'
     runs-on: ubuntu-latest
-    needs: terraform-plan
-    if: github.ref == 'refs/heads/main'
-    environment: 'production' 
+    needs: matrix-prep
+    if: needs.matrix-prep.outputs.matrix-envs != '[]' && needs.matrix-prep.outputs.matrix-envs != ''
+    strategy:
+      fail-fast: false
+      matrix:
+        env: ${{ fromJson(needs.matrix-prep.outputs.matrix-envs) }}
     env:
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       ARM_USE_OIDC: true
-      VERSION: ${{ needs.terraform-plan.outputs.detected_version }}
-
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
-
-    - name: Azure Login for CLI
-      uses: azure/login@v2
-      with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-    - name: Whitelist GitHub Runner IP on tfstate sa-account
-      run: |
-        RUNNER_IP=$(curl -s https://ifconfig.me)
-        echo "Runner IP is $RUNNER_IP"
-        az storage account network-rule add \
-          --resource-group "rg-afdap-tfstate" \
-          --account-name "satfstateafdap123987123" \
-          --ip-address "$RUNNER_IP"
-        sleep 10
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
@@ -150,23 +83,56 @@ jobs:
 
     - name: Terraform Init
       run: terraform init -reconfigure
-      working-directory: ./infra/env/${{ env.VERSION }}
+      working-directory: ./infra/env/${{ matrix.env }}
+
+    - name: Terraform Format Check
+      run: terraform fmt -check
+      working-directory: ./infra/env/${{ matrix.env }}
+
+    - name: Terraform Plan
+      run: terraform plan -input=false -out=tfplan
+      working-directory: ./infra/env/${{ matrix.env }}
+
+    - name: Upload Terraform Plan Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: tfplan-${{ matrix.env }}
+        path: ./infra/env/${{ matrix.env }}/tfplan
+        retention-days: 1
+
+  terraform-apply:
+    name: 'Terraform Apply (${{ matrix.env }})'
+    runs-on: ubuntu-latest
+    needs: [matrix-prep, terraform-plan]
+    if: github.ref == 'refs/heads/main'
+    environment: 'production'
+    strategy:
+      matrix:
+        env: ${{ fromJson(needs.matrix-prep.outputs.matrix-envs) }}
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_USE_OIDC: true
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 1.7.0
+
+    - name: Terraform Init
+      run: terraform init -reconfigure
+      working-directory: ./infra/env/${{ matrix.env }}
 
     - name: Download Terraform Plan Artifact
       uses: actions/download-artifact@v4
       with:
-        name: tfplan-${{ env.VERSION }}
-        path: ./infra/env/${{ env.VERSION }}
+        name: tfplan-${{ matrix.env }}
+        path: ./infra/env/${{ matrix.env }}
 
     - name: Terraform Apply
       run: terraform apply -auto-approve tfplan
-      working-directory: ./infra/env/${{ env.VERSION }}
-
-    - name: Remove GitHub Runner IP from sa-tfstate Whitelist
-      if: always()
-      run: |
-        RUNNER_IP=$(curl -s https://ifconfig.me)
-        az storage account network-rule remove \
-          --resource-group "rg-afdap-tfstate" \
-          --account-name "satfstateafdap123987123" \
-          --ip-address "$RUNNER_IP"
+      working-directory: ./infra/env/${{ matrix.env }}

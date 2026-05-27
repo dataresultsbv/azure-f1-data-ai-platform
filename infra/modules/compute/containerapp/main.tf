@@ -7,7 +7,7 @@ resource "azurerm_log_analytics_workspace" "log_analytics_workspace" {
   tags                = var.tags
 }
 
-resource "azurerm_container_app_environment" "container_app_environment" {
+resource "azurerm_container_app_environment" "f1_ingestion_container_app_environment" {
   name                           = "cae-${var.resource_name_suffix}"
   location                       = var.location
   resource_group_name            = var.resource_group_name
@@ -19,7 +19,7 @@ resource "azurerm_container_app_environment" "container_app_environment" {
 
 resource "azurerm_container_app" "container_app" {
   name                         = "ca-f1-ingestion-${var.resource_name_suffix}"
-  container_app_environment_id = azurerm_container_app_environment.container_app_environment.id
+  container_app_environment_id = azurerm_container_app_environment.f1_ingestion_container_app_environment.id
   resource_group_name          = var.resource_group_name
   revision_mode                = "Single"
 

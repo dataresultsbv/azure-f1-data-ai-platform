@@ -4,8 +4,15 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'src/ingestion/f1-api/**' # Triggers only on changes within the F1 API folder
+      - 'src/ingestion/f1-api/**' 
   workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build-and-push:
