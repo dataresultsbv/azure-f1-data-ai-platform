@@ -56,6 +56,23 @@ jobs:
         echo "VERSION=$VERSION" >> $GITHUB_ENV
         echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
+    - name: Azure Login for CLI
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Whitelist GitHub Runner IP on tfstate sa-account
+      run: |
+        RUNNER_IP=$(curl -s https://ifconfig.me)
+        echo "Runner IP is $RUNNER_IP"
+        az storage account network-rule add \
+          --resource-group "rg-afdap-tfstate" \
+          --account-name "satfstateafdap123987123" \
+          --ip-address "$RUNNER_IP"
+        sleep 10
+
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
@@ -80,6 +97,15 @@ jobs:
         path: ./infra/env/${{ env.VERSION }}/tfplan
         retention-days: 1
 
+    - name: Remove GitHub Runner IP from sa-tfstate Whitelist
+      if: always()
+      run: |
+        RUNNER_IP=$(curl -s https://ifconfig.me)
+        az storage account network-rule remove \
+          --resource-group "rg-afdap-tfstate" \
+          --account-name "satfstateafdap123987123" \
+          --ip-address "$RUNNER_IP"
+
   terraform-apply:
     name: 'Terraform Apply'
     runs-on: ubuntu-latest
@@ -97,6 +123,23 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
+    - name: Azure Login for CLI
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Whitelist GitHub Runner IP on tfstate sa-account
+      run: |
+        RUNNER_IP=$(curl -s https://ifconfig.me)
+        echo "Runner IP is $RUNNER_IP"
+        az storage account network-rule add \
+          --resource-group "rg-afdap-tfstate" \
+          --account-name "satfstateafdap123987123" \
+          --ip-address "$RUNNER_IP"
+        sleep 10
+        
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:
@@ -115,3 +158,12 @@ jobs:
     - name: Terraform Apply
       run: terraform apply -auto-approve tfplan
       working-directory: ./infra/env/${{ env.VERSION }}
+
+    - name: Remove GitHub Runner IP from sa-tfstate Whitelist
+      if: always()
+      run: |
+        RUNNER_IP=$(curl -s https://ifconfig.me)
+        az storage account network-rule remove \
+          --resource-group "rg-afdap-tfstate" \
+          --account-name "satfstateafdap123987123" \
+          --ip-address "$RUNNER_IP"
