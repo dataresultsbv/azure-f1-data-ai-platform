@@ -57,12 +57,12 @@ jobs:
 
           if [ "${{ steps.filter.outputs.v1 }}" == 'true' ]; then
             echo "INFO - Changes detected in infra/env/v1 or modules. Adding 'v1' to matrix."
-            ENV_LIST=$(echo $ENV_LIST | jq '. + ["v1"]')
+            ENV_LIST=$(echo $ENV_LIST | jq -c '. + ["v1"]')
           fi
           
           if [ "${{ steps.filter.outputs.v2 }}" == 'true' ]; then
             echo "INFO - Changes detected in infra/env/v2 or modules. Adding 'v2' to matrix."
-            ENV_LIST=$(echo $ENV_LIST | jq '. + ["v2"]')
+            ENV_LIST=$(echo $ENV_LIST | jq -c '. + ["v2"]')
           fi
         fi
         
