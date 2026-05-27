@@ -8,8 +8,5 @@
 # Crash logs
 crash.log
 
-# Generated Terraform backend file
-backend.tf
-
 # Python .venv folders
 **/.venv/

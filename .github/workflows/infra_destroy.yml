@@ -1,4 +1,4 @@
-name: '2. Core Infrastructure Destroy'
+name: '1b. Core Infrastructure Destroy'
 
 on:
   workflow_dispatch:

@@ -1,4 +1,4 @@
-name: '1. Core Infrastructure Deployment'
+name: '1a. Core Infrastructure Deployment'
 
 on:
   push:
