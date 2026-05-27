@@ -15,7 +15,7 @@ CONTAINER_NAME="tfstates"
 
 # GITHUB CONFIGS
 GH_ORGANIZATION="dataresultsbv"
-GH_REPOSITORY="azure_f1_data_ai_platform"
+GH_REPOSITORY="azure-f1-data-ai-platform"
 
 echo "========================================================"
 echo "Starting Full Enterprise Infrastructure Bootstrap (OIDC)"

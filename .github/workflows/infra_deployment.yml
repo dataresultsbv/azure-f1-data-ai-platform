@@ -46,16 +46,27 @@ jobs:
       id: set-matrix
       run: |
         ENV_LIST="[]"
+        
         if [ ! -z "${{ github.event.inputs.environment_version }}" ]; then
-          ENV_LIST="[\"${{ github.event.inputs.environment_version }}\"]"
+          MANUAL_ENV="${{ github.event.inputs.environment_version }}"
+          echo "INFO - Manual override detected. Target environment set to: '$MANUAL_ENV'"
+          ENV_LIST="[\"$MANUAL_ENV\"]"
+
         else
+          echo "INFO - No manual override detected. Evaluating changed paths..."
+
           if [ "${{ steps.filter.outputs.v1 }}" == 'true' ]; then
+            echo "INFO - Changes detected in infra/env/v1 or modules. Adding 'v1' to matrix."
             ENV_LIST=$(echo $ENV_LIST | jq '. + ["v1"]')
           fi
+          
           if [ "${{ steps.filter.outputs.v2 }}" == 'true' ]; then
+            echo "INFO - Changes detected in infra/env/v2 or modules. Adding 'v2' to matrix."
             ENV_LIST=$(echo $ENV_LIST | jq '. + ["v2"]')
           fi
         fi
+        
+        echo "SUCCESS - Calculated deployment matrix: $ENV_LIST"        
         echo "matrix-envs=$ENV_LIST" >> $GITHUB_OUTPUT
 
   terraform-plan:
