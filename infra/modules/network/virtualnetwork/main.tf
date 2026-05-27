@@ -19,6 +19,7 @@ resource "azurerm_subnet" "snet" {
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.vnet[each.value.vnet_name].name
   address_prefixes     = each.value.snet_address_prefix
+  service_endpoints    = each.value.service_endpoints
 
   dynamic "delegation" {
     # if delegation is not null, create a delegation block(return list with 1 value), otherwise skip it(return empty list)

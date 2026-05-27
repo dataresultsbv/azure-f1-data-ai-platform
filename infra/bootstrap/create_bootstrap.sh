@@ -1,26 +1,3 @@
-#  Hoe lossen we dat op een enterprise-manier op in GitHub?
-#  Zodra we over een paar stappen je GitHub workflow gaan inrichten, gaan we dit oplossen met Dynamic IP Whitelisting binnen de workflow zelf. Jouw workflow-bestand (.github/workflows/deploy.yml) krijgt dan de volgende drie opeenvolgende stappen:
-#  
-#  De Deur Openzetten (Pre-Deploy): De GitHub runner vraagt via een snel CLI-commando zijn eigen tijdelijke IP-adres op en voegt dit toe aan de firewall van je tfstate Storage Account:
-#  
-#  YAML
-#  - name: Whitelist GitHub Runner IP
-#    run: |
-#      RUNNER_IP=$(curl -s https://ifconfig.me)
-#      az storage account network-rule add --resource-group rg-afdap-tfstate --account-name saafdap123987123 --ip-address $RUNNER_IP
-#  De Terraform Run:
-#  Terraform voert de plan of apply uit. Omdat de runner zichzelf net toegang heeft verleend, kan hij perfect bij de state.
-#  
-#  De Deur Weer Sluiten (Post-Deploy / always()):
-#  Zodra Terraform klaar is (of als de run crasht!), schiet er een opruimstap in die het IP-adres van de runner direct weer uit de firewall wist:
-#  
-#  YAML
-#  - name: Remove GitHub Runner IP from Whitelist
-#    if: always()
-#    run: |
-#      RUNNER_IP=$(curl -s https://ifconfig.me)
-#      az storage account network-rule remove --resource-group rg-afdap-tfstate --account-
-
 #Linux script to be run in bash
 #!/usr/bin/env bash
 
@@ -32,8 +9,10 @@ set -euo pipefail
 # --- CONFIGS --- #
 RESOURCE_GROUP_NAME="rg-afdap-tfstate"
 LOCATION="West Europe"
-STORAGE_ACCOUNT_NAME="saafdap123987123"
+STORAGE_ACCOUNT_NAME="satfstateafdap123987123"
 CONTAINER_NAME="tfstates"
+MI_RESOURCE_GROUP="rg-afdap-mi"
+MI_NAME="rg-afdap-mi-12398723"
 
 echo "======================================="
 echo "Starting Enterprise Terraform Bootstrap"
@@ -129,6 +108,26 @@ else
 fi
 
 ###########################################
+####### ASSIGN IAM ROLES TO MI ############
+###########################################
+
+echo "STATUS - Fetching Managed Identity Principal ID..."
+MI_PRINCIPAL_ID=$(az identity show \
+  --name "$MI_NAME" \
+  --resource-group "$MI_RESOURCE_GROUP" \
+  --query "principalId" \
+  --output tsv)
+
+echo "STATUS - Assigning Storage Blob Data Contributor role to Managed Identity..."
+az role assignment create \
+  --assignee "$MI_PRINCIPAL_ID" \
+  --role "Storage Blob Data Contributor" \
+  --scope "/subscriptions/$(az account show --query id -o tsv)/resourceGroups/$RESOURCE_GROUP_NAME/providers/Microsoft.Storage/storageAccounts/$STORAGE_ACCOUNT_NAME" \
+  --output none
+
+echo "SUCCES - Managed Identity now has Data Contributor access to TFState Storage."
+
+###########################################
 ############ CREATE BACKEND.TF ############
 ###########################################
 
@@ -147,6 +146,7 @@ terraform {
     storage_account_name = "$STORAGE_ACCOUNT_NAME"
     container_name       = "$CONTAINER_NAME"
     key                  = "v1/terraform.tfstate"
+    use_oidc             = true
   }
 }
 EOF

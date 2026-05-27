@@ -34,7 +34,8 @@ variable "snet_details" {
       snet_name = string
       vnet_name = string
       snet_address_prefix = list(string)
-      snet_delegation = string
+      snet_delegation = optional(string, null)
+      service_endpoints = optional(list(string), [])
     }
   ))
 }

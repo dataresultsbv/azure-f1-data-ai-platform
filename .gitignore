@@ -1,8 +1,7 @@
 # Terraform runtime folders
 **/.terraform/
-.terraform*
 
-# LoLocal state
+# Local state
 *.tfstate
 *.tfstate.*
 
@@ -12,3 +11,9 @@ crash.log
 # Terraform variable files
 *.tfvars
 *.tfvars.json
+
+# Generated Terraform backend file
+backend.tf
+
+# Python .venv folders
+**/.venv/

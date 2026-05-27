@@ -22,6 +22,7 @@ variable network {
         {
           snet_address_prefix = list(string)
           delegation          = optional(string, null)
+          service_endpoints = optional(list(string), [])
         }
       ))
     }

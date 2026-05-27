@@ -14,6 +14,7 @@ locals {
         snet_name             = snet_key
         snet_address_prefix   = snet_val.snet_address_prefix
         snet_delegation       = snet_val.delegation
+        service_endpoints     = snet_val.service_endpoints
       }
     ]
   ])
