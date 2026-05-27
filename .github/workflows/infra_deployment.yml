@@ -144,6 +144,32 @@ jobs:
         name: tfplan-${{ matrix.env }}
         path: ./infra/env/${{ matrix.env }}
 
+    - name: Azure Login (Required for Firewall Punch)
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Firewall Punch - Whitelist Current Apply Runner IP
+      run: |
+        CURRENT_IP=$(curl -s https://ifconfig.me)
+        echo "INFO - Whitelisting Apply Runner IP: $CURRENT_IP"
+        az storage account network-rule add \
+          --resource-group rg-afdap123987123 \
+          --account-name samainafdap123987123 \
+          --ip-address $CURRENT_IP || echo "WARNING - Storage account does not exist yet. Terraform will create it."
+
     - name: Terraform Apply
       run: terraform apply -auto-approve tfplan
       working-directory: ./infra/env/${{ matrix.env }}
+
+    - name: Firewall Clean - Remove Apply Runner IP
+      if: always()
+      run: |
+        CURRENT_IP=$(curl -s https://ifconfig.me)
+        echo "INFO - Removing Apply Runner IP: $CURRENT_IP"
+        az storage account network-rule remove \
+          --resource-group rg-afdap123987123 \
+          --account-name samainafdap123987123 \
+          --ip-address $CURRENT_IP || echo "WARNING - Storage account not found or IP already removed."

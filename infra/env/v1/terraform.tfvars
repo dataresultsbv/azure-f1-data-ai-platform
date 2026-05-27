@@ -1,5 +1,5 @@
 resource_name_suffix = "afdap123987123"
-location             = "North Europe"
+location             = "West Europe"
 
 tags = {
   Environment = "Dev"

@@ -9,8 +9,7 @@ resource "azurerm_storage_account" "adls" {
   public_network_access_enabled = true
 
   network_rules {
-    default_action             = "Deny"
-    ip_rules                   = var.allowed_ip_ranges
+    default_action             = "Allow"
     bypass                     = ["AzureServices"]
     virtual_network_subnet_ids = var.allowed_subnet_ids
   }
