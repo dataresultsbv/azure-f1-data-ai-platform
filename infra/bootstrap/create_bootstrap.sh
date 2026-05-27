@@ -61,11 +61,31 @@ TENANT_ID=$(az account show --query tenantId -o tsv)
 
 # Assign Contributor to Subscription
 echo "STATUS - Assigning Contributor role on Subscription level to Identity..."
-az role assignment create \
-    --assignee "$MI_PRINCIPAL_ID" \
-    --role "Contributor" \
-    --scope "/subscriptions/$SUBSCRIPTION_ID" \
-    --output none
+
+MAX_RETRIES=6
+RETRY_COUNT=0
+SUCCESS=false
+
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    if az role assignment create \
+        --assignee "$MI_PRINCIPAL_ID" \
+        --role "Contributor" \
+        --scope "/subscriptions/$SUBSCRIPTION_ID" \
+        --output none 2>/dev/null; then
+        echo "SUCCES - Role assignment created successfully."
+        SUCCESS=true
+        break
+    else
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+        echo "INFO - Entra ID replication delay detected. Retrying role assignment in 10 seconds... ($RETRY_COUNT/$MAX_RETRIES)"
+        sleep 10
+    fi
+done
+
+if [ "$SUCCESS" = false ]; then
+    echo "ERROR - Failed to assign Contributor role after $MAX_RETRIES attempts due to Azure replication issues."
+    exit 1
+fi
 
 # Create Federated Credentials
 declare -A CREDENTIALS=(

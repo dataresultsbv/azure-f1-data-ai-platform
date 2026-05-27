@@ -59,6 +59,6 @@ for ENV in "v1" "v2"; do
     fi
 done
 
-echo "================================================================"
-echo "Successfully finished complete Destroy script"
-echo "================================================================"
+echo "==================================================================="
+echo "Successfully finished Full Enterprise Infrastructure Destroy (OIDC)"
+echo "==================================================================="
