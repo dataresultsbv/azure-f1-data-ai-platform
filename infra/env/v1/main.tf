@@ -1,4 +1,4 @@
-# Haal ip adres van laptop op ivm lokaal testen
+# Haal ip adres van de runner
 data "http" "my_public_ip" {
   url = "https://ifconfig.me/ip"
 }

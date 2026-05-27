@@ -17,8 +17,15 @@ resource "azurerm_storage_account" "adls" {
   tags = var.tags
 }
 
+resource "time_sleep" "wait_for_firewall" {
+  depends_on = [azurerm_storage_account.adls]
+
+  create_duration = "30s"
+}
+
 resource "azurerm_storage_data_lake_gen2_filesystem" "layers" {
   for_each           = toset(["bronze", "silver", "gold"])
   name               = each.key
   storage_account_id = azurerm_storage_account.adls.id
+  depends_on = [ time_sleep.wait_for_firewall ]
 }
