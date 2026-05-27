@@ -3,10 +3,12 @@ set -euo pipefail
 
 # --- CONFIGS --- #
 LOCATION="West Europe"
+MAX_RETRIES=6
 
 # Identity Configs
 MI_RESOURCE_GROUP="rg-afdap-mi"
 MI_NAME="rg-afdap-mi-12398723"
+MI_RBAC_ROLES=("Contributor" "Storage Blob Data Contributor")
 
 # TFState Configs
 TFSTATE_RESOURCE_GROUP="rg-afdap-tfstate"
@@ -59,39 +61,39 @@ MI_PRINCIPAL_ID=$(az identity show --name "$MI_NAME" --resource-group "$MI_RESOU
 MI_CLIENT_ID=$(az identity show --name "$MI_NAME" --resource-group "$MI_RESOURCE_GROUP" --query "clientId" -o tsv)
 TENANT_ID=$(az account show --query tenantId -o tsv)
 
-# Assign Contributor to Subscription
-echo "STATUS - Assigning Contributor role on Subscription level to Identity..."
+# Assign roles to Subscription
+for ROLE in "${MI_RBAC_ROLES[@]}"; do
+    echo "STATUS - Assigning $ROLE role on Subscription level to Identity..."
+    RETRY_COUNT=0
+    SUCCESS=false
+    
+    while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+        if az role assignment create \
+            --assignee "$MI_PRINCIPAL_ID" \
+            --role "$ROLE" \
+            --scope "/subscriptions/$SUBSCRIPTION_ID" \
+            --output none 2>/dev/null; then
+            echo "SUCCES - $ROLE role assignment created successfully."
+            SUCCESS=true
+            break
+        else
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            echo "INFO - Retrying $ROLE assignment in 10 seconds... ($RETRY_COUNT/$MAX_RETRIES)"
+            sleep 10
+        fi
+    done
 
-MAX_RETRIES=6
-RETRY_COUNT=0
-SUCCESS=false
-
-while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-    if az role assignment create \
-        --assignee "$MI_PRINCIPAL_ID" \
-        --role "Contributor" \
-        --scope "/subscriptions/$SUBSCRIPTION_ID" \
-        --output none 2>/dev/null; then
-        echo "SUCCES - Role assignment created successfully."
-        SUCCESS=true
-        break
-    else
-        RETRY_COUNT=$((RETRY_COUNT + 1))
-        echo "INFO - Entra ID replication delay detected. Retrying role assignment in 10 seconds... ($RETRY_COUNT/$MAX_RETRIES)"
-        sleep 10
+    if [ "$SUCCESS" = false ]; then
+        echo "ERROR - Failed to assign $ROLE role."
+        exit 1
     fi
 done
-
-if [ "$SUCCESS" = false ]; then
-    echo "ERROR - Failed to assign Contributor role after $MAX_RETRIES attempts due to Azure replication issues."
-    exit 1
-fi
 
 # Create Federated Credentials
 declare -A CREDENTIALS=(
     ["fed-cred-main"]="repo:${GH_ORGANIZATION}/${GH_REPOSITORY}:ref:refs/heads/main"
     ["fed-cred-env-prod"]="repo:${GH_ORGANIZATION}/${GH_REPOSITORY}:environment:production"
-    ["fed-cred-dispatch"]="repo:${GH_ORGANIZATION}/${GH_REPOSITORY}:event:workflow_dispatch"
+    ["fed-cred-pr"]="repo:${GH_ORGANIZATION}/${GH_REPOSITORY}:pull_request"
 )
 
 for CRED_NAME in "${!CREDENTIALS[@]}"; do
@@ -168,7 +170,7 @@ else
     echo "INFO - Blob Container '$CONTAINER_NAME' already exists."
 fi  
 
-# Assign Blob Data Contributor to Managed Identity
+# Assign Blob Data Contributor to Managed Identity (Specifiek op de state container scope)
 echo "STATUS - Assigning Storage Blob Data Contributor role to Managed Identity..."
 az role assignment create \
   --assignee "$MI_PRINCIPAL_ID" \
@@ -204,7 +206,7 @@ EOF
 done
 
 ########################################################
-# PART 4: OUTPUT INSTRUCTIONS                         #
+# PART 4: OUTPUT INSTRUCTIONS                          #
 ########################################################
 
 clear
@@ -212,6 +214,6 @@ echo "================================================================"
 echo "SUCCES - Identity Layer is ready!"
 echo "Put these secrets in your GitHub Repository as Repository Secrets:"
 echo "AZURE_CLIENT_ID:       $MI_CLIENT_ID"
-echo "AZURE_TENANT_ID:       $(az account show --query tenantId -o tsv)"
+echo "AZURE_TENANT_ID:       $TENANT_ID"
 echo "AZURE_SUBSCRIPTION_ID: $SUBSCRIPTION_ID"
 echo "================================================================"
