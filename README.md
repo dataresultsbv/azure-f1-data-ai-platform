@@ -57,7 +57,6 @@ The repository follows a modular structure where infrastructure, services, workf
 azure-f1-data-ai-platform/
 │
 ├── .github/
-├── docker/
 ├── docs/
 ├── infra/
 ├── src/
@@ -72,19 +71,9 @@ Contains GitHub Actions workflows for:
 - Docker image builds
 - Release workflows
 
-### `docker/`
-Contains Dockerfiles for platform workloads such as:
-
-- Data ingestion
-- Transformation jobs
-- API services
-- AI workers
-- ML workloads
-
 ### `docs/`
-Contains project documentation, including:
+Contains project version specific documentation, including:
 
-- Version-specific documentation
 - Architecture diagrams
 - Architectural Decision Records (ADRs)
 - Design considerations

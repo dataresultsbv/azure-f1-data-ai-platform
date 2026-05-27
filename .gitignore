@@ -8,10 +8,6 @@
 # Crash logs
 crash.log
 
-# Terraform variable files
-*.tfvars
-*.tfvars.json
-
 # Generated Terraform backend file
 backend.tf
 
