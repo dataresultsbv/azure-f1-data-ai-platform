@@ -14,7 +14,7 @@ resource "azurerm_container_app_environment" "container_app_environment" {
   log_analytics_workspace_id     = azurerm_log_analytics_workspace.log_analytics_workspace.id
   infrastructure_subnet_id       = var.infra_subnet_id
   internal_load_balancer_enabled = true # Together with external_enabled in the container_app.ingress makes sure there is no public-ip
-  tags = var.tags
+  tags                           = var.tags
 }
 
 resource "azurerm_container_app" "container_app" {

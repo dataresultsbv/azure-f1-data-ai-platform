@@ -1,6 +1,6 @@
 # 1. Maak de VNets aan (eenvoudige loop over de buitenste map)
 resource "azurerm_virtual_network" "vnet" {
-  for_each            = {
+  for_each = {
     for vnet in var.vnet_details : vnet.vnet_name => vnet
   }
   name                = "vnet-${each.key}-${var.resource_name_suffix}"

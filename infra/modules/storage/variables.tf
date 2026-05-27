@@ -14,8 +14,8 @@ variable "location" {
 }
 
 variable "tags" {
-  type        = map(string)
-  default     = {}
+  type    = map(string)
+  default = {}
 }
 
 variable "allowed_subnet_ids" {

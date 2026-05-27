@@ -16,6 +16,9 @@ permissions:
   contents: read
   id-token: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   terraform-plan:
     name: 'Terraform Plan'
@@ -139,7 +142,7 @@ jobs:
           --account-name "satfstateafdap123987123" \
           --ip-address "$RUNNER_IP"
         sleep 10
-        
+
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
       with:

@@ -10,19 +10,19 @@ variable "location" {
 }
 
 variable "tags" {
-  type        = map(string)
-  default     = {}
+  type    = map(string)
+  default = {}
 }
 
-variable network {
+variable "network" {
   type = map(object(
     {
-      vnet_address_space  = list(string)
-      snets               = map(object(
+      vnet_address_space = list(string)
+      snets = map(object(
         {
           snet_address_prefix = list(string)
           delegation          = optional(string, null)
-          service_endpoints = optional(list(string), [])
+          service_endpoints   = optional(list(string), [])
         }
       ))
     }

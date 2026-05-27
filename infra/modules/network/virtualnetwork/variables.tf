@@ -15,14 +15,14 @@ variable "location" {
 }
 
 variable "tags" {
-  type        = map(string)
-  default     = {}
+  type    = map(string)
+  default = {}
 }
 
 variable "vnet_details" {
   type = list(object(
     {
-      vnet_name = string
+      vnet_name          = string
       vnet_address_space = list(string)
     }
   ))
@@ -31,11 +31,11 @@ variable "vnet_details" {
 variable "snet_details" {
   type = list(object(
     {
-      snet_name = string
-      vnet_name = string
+      snet_name           = string
+      vnet_name           = string
       snet_address_prefix = list(string)
-      snet_delegation = optional(string, null)
-      service_endpoints = optional(list(string), [])
+      snet_delegation     = optional(string, null)
+      service_endpoints   = optional(list(string), [])
     }
   ))
 }
