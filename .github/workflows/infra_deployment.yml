@@ -45,7 +45,7 @@ jobs:
       run: terraform fmt -check
       working-directory: ./infra/env/${{ env.VERSION }}
 
-    - name: Azure Login (Required for Plan Firewall Punch)
+    - name: Azure Login (Required for Firewall Punch)
       uses: azure/login@v2
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -112,7 +112,7 @@ jobs:
         name: tfplan-${{ env.VERSION }}
         path: ./infra/env/${{ env.VERSION }}
 
-    - name: Azure Login (Required for Apply Firewall Punch)
+    - name: Azure Login (Required for Firewall Punch)
       uses: azure/login@v2
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}

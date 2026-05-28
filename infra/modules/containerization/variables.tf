@@ -20,12 +20,12 @@ variable "tags" {
 }
 
 variable "f1_api_ingestion_ci" {
-  type = map(object(
+  type = object(
     {
       ci_name           = string
       start_season      = string
       end_season        = string
       sa_container_name = string
     }
-  ))
+  )
 }

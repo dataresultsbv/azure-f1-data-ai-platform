@@ -23,10 +23,9 @@ network = {
 sa_container_names = ["bronze", "silver", "gold"]
 
 f1_api_ingestion_ci = {
-  "f1-api-ingestion" = {
-    ci_name           = "f1-api-ingestion"
-    start_season      = "2014"
-    end_season        = "2025"
-    sa_container_name = "bronze"
-  }
+  ci_name           = "f1-api-ingestion"
+  start_season      = "2014"
+  end_season        = "2025"
+  sa_container_name = "bronze"
+  
 }
