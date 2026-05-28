@@ -72,3 +72,11 @@ jobs:
           --registry-login-server ${{ env.ACR_NAME }}.azurecr.io \
           --registry-username ${{ env.ACR_NAME }} \
           --registry-password ${{ env.PASSWORD }}
+
+    - name: Stream Container Runtime Logs
+      run: |
+        echo "Waiting for the container to start and log streams..."
+        az container logs \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --name ${{ env.ACI_NAME }} \
+          --follow
