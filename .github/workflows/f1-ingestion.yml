@@ -41,7 +41,7 @@ jobs:
     - name: Build and Push F1 Docker Image
       uses: docker/build-push-action@v5
       with:
-        context: ./src/ingestion/f1-api
+        context: .
         file: ./src/ingestion/f1-api/Dockerfile
         push: true
         tags: |

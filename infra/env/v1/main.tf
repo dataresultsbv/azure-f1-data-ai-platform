@@ -38,22 +38,14 @@ module "storage" {
 }
 
 module "containerapp" {
-  source               = "../../modules/compute/containerapp"
-  resource_group_name  = module.resource_group.resource_group_name
-  resource_name_suffix = var.resource_name_suffix
-  location             = var.location
-  infra_subnet_id      = module.network.snet_ids["ingestion"]
-  tags                 = var.tags
+  source                  = "../../modules/containerization"
+  resource_group_name     = module.resource_group.resource_group_name
+  resource_name_suffix    = var.resource_name_suffix
+  location                = var.location
+  storage_account_name    = module.storage.storage_account_name
+  container_image         = var.container_image
+  tags                    = var.tags
 
   depends_on = [module.network]
 }
 
-module "registry" {
-  source               = "../../modules/registry"
-  resource_group_name  = module.resource_group.resource_group_name
-  resource_name_suffix = var.resource_name_suffix
-  location             = var.location
-  tags                 = var.tags
-
-  depends_on = [module.network]
-}

@@ -5,7 +5,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY src/ingestion/requirements.txt .
+COPY src/ingestion/f1-api/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src/ingestion/f1-api/f1_api_ingestion.py .
