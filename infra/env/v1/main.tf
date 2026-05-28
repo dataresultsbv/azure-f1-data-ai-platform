@@ -32,6 +32,7 @@ module "storage" {
   location             = var.location
   allowed_ip_ranges    = [chomp(data.http.my_public_ip.response_body)]
   allowed_subnet_ids   = [for snet in local.subnet_flat : module.network.snet_ids[snet.snet_name]]
+  sa_container_names    = var.sa_container_names
   tags                 = var.tags
 
   depends_on = [module.network]
@@ -43,7 +44,7 @@ module "containerapp" {
   resource_name_suffix = var.resource_name_suffix
   location             = var.location
   storage_account_name = module.storage.storage_account_name
-  container_image      = var.container_image
+  container_images     = var.container_images
   tags                 = var.tags
 
   depends_on = [module.network]

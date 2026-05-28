@@ -19,9 +19,10 @@ variable "tags" {
   default = {}
 }
 
-variable "container_image" {
+variable "f1_api-ingestion-ci" {
   type = map(object(
     {
+      ci_name           = string
       start_season      = string
       end_season        = string
       sa_container_name = string

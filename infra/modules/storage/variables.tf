@@ -18,6 +18,10 @@ variable "tags" {
   default = {}
 }
 
+variable "sa_container_names" {
+  type = list(string)
+}
+
 variable "allowed_subnet_ids" {
   type        = list(string)
   description = "List of Subnet IDs that will have access to this Storage Account"

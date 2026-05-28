@@ -17,7 +17,7 @@ resource "azurerm_storage_account" "adls" {
 }
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "layers" {
-  for_each           = toset(["bronze", "silver", "gold"])
+  for_each           = toset(var.sa_container_names)
   name               = each.key
   storage_account_id = azurerm_storage_account.adls.id
 }

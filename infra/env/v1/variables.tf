@@ -29,9 +29,14 @@ variable "network" {
   ))
 }
 
-variable "container_image" {
+variable "sa_container_names" {
+  type = list(string)
+}
+
+variable "f1_api-ingestion-ci" {
   type = map(object(
     {
+      ci_name           = string
       start_season      = string
       end_season        = string
       sa_container_name = string
