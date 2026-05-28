@@ -27,5 +27,5 @@ f1_api_ingestion_ci = {
   start_season      = "2014"
   end_season        = "2025"
   sa_container_name = "bronze"
-  
+
 }
