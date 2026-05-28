@@ -52,9 +52,21 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
+    - name: Get ACR Credentials
+      id: acr_creds
+      run: |
+        ACR_PASSWORD=$(az acr credential show --name ${{ env.ACR_NAME }} --query "passwords[0].value" -o tsv)
+        echo "::add-mask::$ACR_PASSWORD"
+        echo "PASSWORD=$ACR_PASSWORD" >> $GITHUB_ENV
+
     - name: Update ACI to run latest image
       run: |
         az container create \
           --resource-group ${{ env.RESOURCE_GROUP }} \
           --name ${{ env.ACI_NAME }} \
-          --image ${{ env.ACR_NAME }}.azurecr.io/f1-api-ingestion:${{ github.sha }}
+          --image ${{ env.ACR_NAME }}.azurecr.io/f1-api-ingestion:${{ github.sha }} \
+          --os-type Linux \
+          --restart-policy Never \
+          --registry-login-server ${{ env.ACR_NAME }}.azurecr.io \
+          --registry-username ${{ env.ACR_NAME }} \
+          --registry-password ${{ env.PASSWORD }}
