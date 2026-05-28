@@ -14,6 +14,8 @@ permissions:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   ACR_NAME: 'acrafdap123987123'
+  RESOURCE_GROUP: 'rg-afdap123987123'
+  ACI_NAME: 'ci-f1-api-ingestion-afdap123987123'
 
 jobs:
   build-and-push:
@@ -49,3 +51,10 @@ jobs:
           ${{ env.ACR_NAME }}.azurecr.io/f1-api-ingestion:${{ github.sha }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+    - name: Update ACI to run latest image
+      run: |
+        az container update \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --name ${{ env.ACI_NAME }} \
+          --image ${{ env.ACR_NAME }}.azurecr.io/f1-api-ingestion:${{ github.sha }}

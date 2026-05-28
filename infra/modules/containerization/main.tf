@@ -26,6 +26,11 @@ resource "azurerm_container_group" "f1_container_group" {
     cpu    = "0.5"
     memory = "1.0"
 
+  ports {
+      port     = 443
+      protocol = "TCP"
+    }
+
     environment_variables = {
       START_SEASON         = var.f1_api_ingestion_ci.start_season
       END_SEASON           = var.f1_api_ingestion_ci.end_season
