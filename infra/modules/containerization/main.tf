@@ -30,7 +30,7 @@ resource "azurerm_container_group" "f1_container_group" {
       START_SEASON         = var.f1_api_ingestion_ci.start_season
       END_SEASON           = var.f1_api_ingestion_ci.end_season
       STORAGE_ACCOUNT_NAME = var.storage_account_name
-      CONTAINER_NAME       = var.container_image.value.sa_container_name
+      CONTAINER_NAME       = var.f1_api_ingestion_ci.sa_container_name
     }
   }
 
