@@ -19,11 +19,11 @@ variable "tags" {
   default = {}
 }
 
-variable "container_image"{
+variable "container_image" {
   type = map(object(
     {
-      start_season = string
-      end_season = string
+      start_season      = string
+      end_season        = string
       sa_container_name = string
     }
   ))

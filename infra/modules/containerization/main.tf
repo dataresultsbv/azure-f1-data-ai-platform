@@ -14,7 +14,7 @@ resource "azurerm_container_group" "f1_container_group" {
   location            = var.location
   resource_group_name = var.resource_group_name
   os_type             = "Linux"
-  restart_policy      = "Never" 
+  restart_policy      = "Never"
 
   identity {
     type = "SystemAssigned"
@@ -40,7 +40,7 @@ resource "azurerm_container_group" "f1_container_group" {
     password = azurerm_container_registry.container_registry.admin_password
   }
   tags = var.tags
-  
+
   lifecycle {
     ignore_changes = [
       container[0].image
