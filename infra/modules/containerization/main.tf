@@ -21,16 +21,16 @@ resource "azurerm_container_group" "f1_container_group" {
   }
 
   container {
-    name   = var.container_image.key
+    name   = var.f1_api_ingestion_ci.ci_name
     image  = "${azurerm_container_registry.container_registry.name}.azurecr.io/${var.f1_api_ingestion_ci.ci_name}:latest"
     cpu    = "0.5"
     memory = "1.0"
 
     environment_variables = {
-      START_SEASON         = var.container_image.value.start_season
-      END_SEASON           = var.container_image.value.end_season
+      START_SEASON         = var.f1_api_ingestion_ci.start_season
+      END_SEASON           = var.f1_api_ingestion_ci.end_season
       STORAGE_ACCOUNT_NAME = var.storage_account_name
-      CONTAINER_NAME       = var.container_image.value.sa_container_name
+      CONTAINER_NAME       = var.f1_api_ingestion_ci.sa_container_name
     }
   }
 
