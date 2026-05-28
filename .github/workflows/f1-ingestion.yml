@@ -67,6 +67,8 @@ jobs:
           --image ${{ env.ACR_NAME }}.azurecr.io/f1-api-ingestion:${{ github.sha }} \
           --os-type Linux \
           --restart-policy Never \
+          --cpu 0.5 \
+          --memory 1.0 \
           --registry-login-server ${{ env.ACR_NAME }}.azurecr.io \
           --registry-username ${{ env.ACR_NAME }} \
           --registry-password ${{ env.PASSWORD }}
