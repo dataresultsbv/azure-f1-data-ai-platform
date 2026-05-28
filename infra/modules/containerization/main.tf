@@ -30,7 +30,7 @@ resource "azurerm_container_group" "f1_container_group" {
       START_SEASON         = var.f1_api_ingestion_ci.start_season
       END_SEASON           = var.f1_api_ingestion_ci.end_season
       STORAGE_ACCOUNT_NAME = var.storage_account_name
-      CONTAINER_NAME       = var.f1_api_ingestion_ci.sa_container_name
+      CONTAINER_NAME       = var.container_image.value.sa_container_name
     }
   }
 
@@ -49,7 +49,7 @@ resource "azurerm_container_group" "f1_container_group" {
 }
 
 resource "azurerm_role_assignment" "aci_to_bronze" {
-  scope                = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/${var.resource_group_name}/providers/Microsoft.Storage/storageAccounts/${var.storage_account_name}"
+  scope                = "/resourceGroups/${var.resource_group_name}/providers/Microsoft.Storage/storageAccounts/${var.storage_account_name}"
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = azurerm_container_group.f1_container_group.identity[0].principal_id
 }
