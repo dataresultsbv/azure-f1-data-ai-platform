@@ -44,7 +44,7 @@ module "containerapp" {
   resource_name_suffix = var.resource_name_suffix
   location             = var.location
   storage_account_name = module.storage.storage_account_name
-  container_images     = var.container_images
+  f1_api-ingestion-ci = var.f1_api-ingestion-ci
   tags                 = var.tags
 
   depends_on = [module.network]
