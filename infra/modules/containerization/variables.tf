@@ -19,7 +19,7 @@ variable "tags" {
   default = {}
 }
 
-variable "f1_api-ingestion-ci" {
+variable "f1_api_ingestion_ci" {
   type = map(object(
     {
       ci_name           = string

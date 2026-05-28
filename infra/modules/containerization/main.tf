@@ -10,7 +10,7 @@ resource "azurerm_container_registry" "container_registry" {
 }
 
 resource "azurerm_container_group" "f1_container_group" {
-  name                = "ci-${var.f1_api-ingestion-ci.ci_name}-${var.resource_name_suffix}"
+  name                = "ci-${var.f1_api_ingestion_ci.ci_name}-${var.resource_name_suffix}"
   location            = var.location
   resource_group_name = var.resource_group_name
   os_type             = "Linux"
@@ -22,7 +22,7 @@ resource "azurerm_container_group" "f1_container_group" {
 
   container {
     name   = var.container_image.key
-    image  = "${azurerm_container_registry.container_registry.name}.azurecr.io/${var.f1_api-ingestion-ci.ci_name}:latest"
+    image  = "${azurerm_container_registry.container_registry.name}.azurecr.io/${var.f1_api_ingestion_ci.ci_name}:latest"
     cpu    = "0.5"
     memory = "1.0"
 

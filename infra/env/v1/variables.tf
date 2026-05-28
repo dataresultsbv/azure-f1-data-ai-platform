@@ -33,7 +33,7 @@ variable "sa_container_names" {
   type = list(string)
 }
 
-variable "f1_api-ingestion-ci" {
+variable "f1_api_ingestion_ci" {
   type = map(object(
     {
       ci_name           = string

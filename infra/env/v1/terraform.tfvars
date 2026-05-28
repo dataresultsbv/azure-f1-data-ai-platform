@@ -20,9 +20,9 @@ network = {
   }
 }
 
-sa_container_names=["bronze","silver","gold"]
+sa_container_names = ["bronze", "silver", "gold"]
 
-f1_api-ingestion-ci = {
+f1_api_ingestion_ci = {
   "f1-api-ingestion" = {
     ci_name           = "f1-api-ingestion"
     start_season      = "2014"
