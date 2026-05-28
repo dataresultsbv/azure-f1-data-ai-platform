@@ -84,7 +84,7 @@ class INGESTIONPIPELINE:
 
     def run(self) -> None:
         """Start the entire ingestionprocess for the configured seasonrange."""
-        logger.info("=== F1 Ingestion Pipeline Started ===")
+        logger.info("F1 Ingestion Pipeline Started")
         logger.info(f"Loadrange configured: {self.start_season} - {self.end_season}")
         
         for season in range(self.start_season, self.end_season + 1):
@@ -98,7 +98,7 @@ class INGESTIONPIPELINE:
             except Exception as e:
                 logger.error(f"ERROR - Pipeline processing broken for season {season}: {e}")
                 
-        logger.info("=== F1 Ingestion Pipeline Successfully Finished ===")
+        logger.info("F1 Ingestion Pipeline Successfully Finished")
 
 
 def main():

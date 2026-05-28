@@ -22,7 +22,7 @@ resource "azurerm_container_group" "f1_container_group" {
 
   container {
     name   = var.f1_api_ingestion_ci.ci_name
-    image  = "${azurerm_container_registry.container_registry.name}.azurecr.io/${var.f1_api_ingestion_ci.ci_name}:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "1.0"
 
@@ -53,8 +53,10 @@ resource "azurerm_container_group" "f1_container_group" {
   }
 }
 
+data "azurerm_subscription" "current" {}
+
 resource "azurerm_role_assignment" "aci_to_bronze" {
-  scope                = "/resourceGroups/${var.resource_group_name}/providers/Microsoft.Storage/storageAccounts/${var.storage_account_name}"
+  scope                = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/${var.resource_group_name}/providers/Microsoft.Storage/storageAccounts/${var.storage_account_name}"
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = azurerm_container_group.f1_container_group.identity[0].principal_id
 }
