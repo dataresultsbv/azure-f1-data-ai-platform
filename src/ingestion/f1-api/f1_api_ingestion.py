@@ -17,28 +17,37 @@ logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(l
 logging.getLogger("azure.identity").setLevel(logging.WARNING)
 
 class F1CLIENT:
-    """Responsable for all comunication with the jolpica-f1-api."""
+    """Responsible for all communication with the jolpica-f1-api."""
     
     BASE_URL = "https://api.jolpi.ca/ergast/f1"
 
     def __init__(self, timeout: int = 10):
         self.timeout = timeout
 
+    def _fetch_data(self, endpoint_url: str) -> Dict[str, Any]:
+        """Generic helper to fetch data from the API."""
+        params = {"limit": 1000}
+        response = requests.get(endpoint_url, params=params, timeout=self.timeout)
+        response.raise_for_status()
+        return response.json()
+
     def fetch_season_results(self, season: int) -> Dict[str, Any]:
         """Retrieves race results for a specific season."""
         url = f"{self.BASE_URL}/{season}/results.json"
-        params = {"limit": 1000}
-        
-        logger.info(f"Connecting to API for season {season} -> {url}")
-        
-        response = requests.get(url, params=params, timeout=self.timeout)
-        response.raise_for_status()
-        
-        data = response.json()
-        total_results = data.get("MRData", {}).get("total", 0)
-        logger.info(f"SUCCES - HTTP {response.status_code} | Records: {total_results}")
-        
-        return data
+        logger.info(f"Connecting to API for race results season {season}")
+        return self._fetch_data(url)
+
+    def fetch_driver_standings(self, season: int) -> Dict[str, Any]:
+        """Retrieves driver standings for a specific season."""
+        url = f"{self.BASE_URL}/{season}/driverStandings.json"
+        logger.info(f"Connecting to API for driver standings season {season}")
+        return self._fetch_data(url)
+
+    def fetch_constructor_standings(self, season: int) -> Dict[str, Any]:
+        """Retrieves constructor standings for a specific season."""
+        url = f"{self.BASE_URL}/{season}/constructorStandings.json"
+        logger.info(f"Connecting to API for constructor standings season {season}")
+        return self._fetch_data(url)
 
 
 class ADLSUPLOADER:
@@ -84,20 +93,36 @@ class INGESTIONPIPELINE:
         self.uploader = uploader
 
     def run(self) -> None:
-        """Start the entire ingestionprocess for the configured seasonrange."""
+        """Start the entire ingestion process for the configured season range."""
         logger.info("F1 Ingestion Pipeline Started")
         logger.info(f"Loadrange configured: {self.start_season} - {self.end_season}")
         
         for season in range(self.start_season, self.end_season + 1):
+            logger.info(f"--- Processing Season {season} ---")
+            
+            # 1. Race Results
             try:
                 data = self.api_client.fetch_season_results(season)
                 blob_path = f"f1/results/season={season}/bronze_results_{season}.json"
                 self.uploader.upload_json(data, blob_path)
-                
-            except requests.exceptions.RequestException as e:
-                logger.error(f"ERROR - API extraction failed for season {season}: {e}")
             except Exception as e:
-                logger.error(f"ERROR - Pipeline processing broken for season {season}: {e}")
+                logger.error(f"ERROR - Race results failed for season {season}: {e}")
+
+            # 2. Driver Standings
+            try:
+                data = self.api_client.fetch_driver_standings(season)
+                blob_path = f"f1/driver_standings/season={season}/bronze_driver_standings_{season}.json"
+                self.uploader.upload_json(data, blob_path)
+            except Exception as e:
+                logger.error(f"ERROR - Driver standings failed for season {season}: {e}")
+
+            # 3. Constructor Standings
+            try:
+                data = self.api_client.fetch_constructor_standings(season)
+                blob_path = f"f1/constructor_standings/season={season}/bronze_constructor_standings_{season}.json"
+                self.uploader.upload_json(data, blob_path)
+            except Exception as e:
+                logger.error(f"ERROR - Constructor standings failed for season {season}: {e}")
                 
         logger.info("F1 Ingestion Pipeline Successfully Finished")
 
