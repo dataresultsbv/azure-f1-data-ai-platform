@@ -73,10 +73,13 @@ jobs:
           --registry-username ${{ env.ACR_NAME }} \
           --registry-password ${{ env.PASSWORD }}
 
-    - name: Stream Container Runtime Logs
+    - name: Wait for Container Completion and Fetch Logs
       run: |
-        echo "Waiting for the container to start and log streams..."
+        az container wait \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --name ${{ env.ACI_NAME }}
+        
+        echo "RUNTIME LOGS"
         az container logs \
           --resource-group ${{ env.RESOURCE_GROUP }} \
-          --name ${{ env.ACI_NAME }} \
-          --follow
+          --name ${{ env.ACI_NAME }}
