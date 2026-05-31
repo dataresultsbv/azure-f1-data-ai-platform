@@ -1,0 +1,5 @@
+[tool.pytest.ini_options]
+pythonpath = ["."]
+markers = [
+    "integration: live integratietests die verbinding maken met externe API's of Azure"
+]
