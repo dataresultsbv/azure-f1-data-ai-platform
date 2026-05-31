@@ -8,7 +8,7 @@ MAX_RETRIES=6
 # Identity Configs
 MI_RESOURCE_GROUP="rg-afdap-mi"
 MI_NAME="rg-afdap-mi-12398723"
-MI_RBAC_ROLES=("Contributor" "Storage Blob Data Contributor")
+MI_RBAC_ROLES=("Contributor" "Storage Blob Data Contributor" "Role Based Access Control Administrator")
 
 # TFState Configs
 TFSTATE_RESOURCE_GROUP="rg-afdap-tfstate"

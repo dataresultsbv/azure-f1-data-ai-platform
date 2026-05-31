@@ -3,6 +3,8 @@ set -euo pipefail
 
 # --- CONFIGS --- #
 MI_RESOURCE_GROUP="rg-afdap-mi"
+MI_NAME="rg-afdap-mi-12398723"
+MI_RBAC_ROLES=("Contributor" "Storage Blob Data Contributor" "Role Based Access Control Administrator")
 TFSTATE_RESOURCE_GROUP="rg-afdap-tfstate"
 
 echo "========================================================"
@@ -15,6 +17,29 @@ if ! az account show &>/dev/null; then
     exit 1
 fi
 echo "SUCCES - Azure CLI connection is active."
+
+SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+
+###########################################
+###### CLEANUP SUBSCRIPTION RBAC ROLES ####
+###########################################
+
+# Haal het Principal ID op zolang de Identity nog bestaat
+MI_PRINCIPAL_ID=$(az identity show --name "$MI_NAME" --resource-group "$MI_RESOURCE_GROUP" --query "principalId" -o tsv 2>/dev/null || echo "")
+
+if [ -n "$MI_PRINCIPAL_ID" ]; then
+    for ROLE in "${MI_RBAC_ROLES[@]}"; do
+        echo "STATUS - Removing $ROLE role assignment from Subscription..."
+        az role assignment delete \
+            --assignee "$MI_PRINCIPAL_ID" \
+            --role "$ROLE" \
+            --scope "/subscriptions/$SUBSCRIPTION_ID" \
+            --output none 2>/dev/null || echo "INFO - Role $ROLE already removed or not found."
+    done
+    echo "SUCCES - Subscription role assignments cleaned up."
+else
+    echo "INFO - Managed Identity '$MI_NAME' not found or resource group already gone. Skipping subscription RBAC cleanup."
+fi
 
 ###########################################
 ########## DESTROY RESOURCE GROUPS ########
