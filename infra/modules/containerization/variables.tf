@@ -29,3 +29,13 @@ variable "f1_api_ingestion_ci" {
     }
   )
 }
+
+variable "f1_transformation_ci" {
+  type = object(
+    {
+      ci_name      = string
+      start_season = string
+      end_season   = string
+    }
+  )
+}

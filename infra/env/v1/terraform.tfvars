@@ -27,5 +27,10 @@ f1_api_ingestion_ci = {
   start_season      = "2014"
   end_season        = "2025"
   sa_container_name = "bronze"
+}
 
+f1_transformation_ci = {
+  ci_name           = "f1_to_silver"
+  start_season      = "2014"
+  end_season        = "2025"
 }
