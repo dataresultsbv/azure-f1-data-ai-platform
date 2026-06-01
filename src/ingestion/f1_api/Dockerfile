@@ -5,10 +5,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY src/ingestion/f1-api/requirements.txt .
+COPY src/ingestion/f1_api/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY src/ingestion/f1-api/f1_api_ingestion.py .
+COPY src/ingestion/f1_api/f1_api_ingestion.py .
 
 RUN useradd -u 8888 appuser && chown -R appuser:appuser /app
 USER appuser
