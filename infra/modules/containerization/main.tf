@@ -90,6 +90,11 @@ resource "azurerm_container_group" "f1_transformation_group" {
     cpu    = "0.5"
     memory = "1.0"
 
+  ports {
+      port     = 80
+      protocol = "TCP"
+    }
+
     environment_variables = {
       START_SEASON              = var.f1_transformation_ci.start_season
       END_SEASON                = var.f1_transformation_ci.end_season
