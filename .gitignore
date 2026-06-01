@@ -10,3 +10,9 @@ crash.log
 
 # Python .venv folders
 **/.venv/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
