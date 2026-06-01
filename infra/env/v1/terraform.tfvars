@@ -30,7 +30,7 @@ f1_api_ingestion_ci = {
 }
 
 f1_transformation_ci = {
-  ci_name           = "f1_to_silver"
-  start_season      = "2014"
-  end_season        = "2025"
+  ci_name      = "f1_to_silver"
+  start_season = "2014"
+  end_season   = "2025"
 }

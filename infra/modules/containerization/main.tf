@@ -91,8 +91,8 @@ resource "azurerm_container_group" "f1_transformation_group" {
     memory = "1.0"
 
     environment_variables = {
-      START_SEASON            = var.f1_transformation_ci.start_season
-      END_SEASON              = var.f1_transformation_ci.end_season
+      START_SEASON              = var.f1_transformation_ci.start_season
+      END_SEASON                = var.f1_transformation_ci.end_season
       AZURE_STORAGE_ACCOUNT_URL = "https://${var.storage_account_name}.dfs.core.windows.net"
     }
   }
