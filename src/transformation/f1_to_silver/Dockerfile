@@ -13,8 +13,8 @@ COPY src/transformation/f1_to_silver/f1_to_silver.py .
 RUN useradd -u 8888 appuser && chown -R appuser:appuser /app
 USER appuser
 
-ENV START_SEASON=2024 \
-    END_SEASON=2024 \
+ENV START_SEASON=2014 \
+    END_SEASON=2025 \
     AZURE_STORAGE_ACCOUNT_URL=""
 
 CMD ["python", "f1_to_silver.py"]

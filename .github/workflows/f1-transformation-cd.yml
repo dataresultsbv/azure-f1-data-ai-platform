@@ -17,7 +17,8 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   ACR_NAME: 'acrafdap123987123'
   RESOURCE_GROUP: 'rg-afdap123987123'
-  ACI_NAME: 'ci-f1-silver-transformation-afdap123987123' 
+  ACI_NAME: 'ci-f1-silver-transformation-afdap123987123'
+  PYTHONUNBUFFERED: '1'
 
 jobs:
   build-and-run-transformation:
@@ -74,7 +75,7 @@ jobs:
           --registry-username ${{ env.ACR_NAME }} \
           --registry-password ${{ env.PASSWORD }} \
           --assign-identity "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-f1-transformation-afdap123987123" \
-          --environment-variables AZURE_STORAGE_ACCOUNT_URL="https://stafdap123987123.blob.core.windows.net" START_SEASON="2024" END_SEASON="2024"
+          --environment-variables PYTHONUNBUFFERED="1" AZURE_STORAGE_ACCOUNT_URL="https://stafdap123987123.blob.core.windows.net" START_SEASON="2024" END_SEASON="2024"
 
     - name: Stream Container Runtime Logs
       run: |
