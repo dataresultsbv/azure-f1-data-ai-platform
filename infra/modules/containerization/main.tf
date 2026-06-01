@@ -10,7 +10,7 @@ resource "azurerm_container_registry" "container_registry" {
 }
 
 resource "azurerm_container_group" "f1_container_group" {
-  name                = "ci-${var.f1_api_ingestion_ci.ci_name}-${var.resource_name_suffix}"
+  name                = replace("ci-${var.f1_api_ingestion_ci.ci_name}-${var.resource_name_suffix}", "_", "-")
   location            = var.location
   resource_group_name = var.resource_group_name
   os_type             = "Linux"
@@ -21,7 +21,7 @@ resource "azurerm_container_group" "f1_container_group" {
   }
 
   container {
-    name   = var.f1_api_ingestion_ci.ci_name
+    name   = replace(var.f1_api_ingestion_ci.ci_name, "_", "-")
     image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "1.0"
