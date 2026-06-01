@@ -45,6 +45,7 @@ module "containerapp" {
   location             = var.location
   storage_account_name = module.storage.storage_account_name
   f1_api_ingestion_ci  = var.f1_api_ingestion_ci
+  f1_transformation_ci = var.f1_transformation_ci
   tags                 = var.tags
 
   depends_on = [module.network]
