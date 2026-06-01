@@ -291,8 +291,8 @@ class F1Orchestrator:
 if __name__ == "__main__":
     # Retrieve configuration from Environment Variables
     STORAGE_ACCOUNT_URL = os.environ["AZURE_STORAGE_ACCOUNT_URL"]
-    START_SEASON = int(os.getenv("START_SEASON", "2024"))
-    END_SEASON = int(os.getenv("END_SEASON", "2024"))
+    START_SEASON = int(os.getenv("START_SEASON", "2014"))
+    END_SEASON = int(os.getenv("END_SEASON", "2025"))
     
     seasons_to_process = list(range(START_SEASON, END_SEASON + 1))
     
