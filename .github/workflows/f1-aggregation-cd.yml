@@ -19,6 +19,8 @@ env:
   AZURE_STORAGE_ACCOUNT_URL: 'https://samainafdap123987123.blob.core.windows.net'
   START_SEASON: '2014'
   END_SEASON: '2025'
+  SILVER_CONTAINER_NAME: 'silver'
+  GOLD_CONTAINER_NAME: 'gold'
 
 jobs:
   build-and-run-aggregation:
@@ -86,7 +88,8 @@ jobs:
             START_SEASON="${{ env.START_SEASON }}" \
             END_SEASON="${{ env.END_SEASON }}" \
             AZURE_CLIENT_ID="$USER_MI_CLIENT_ID" \
-            BLOB_CONTAINER_NAME="f1-medallion-data"
+            SILVER_CONTAINER_NAME="${{ env.SILVER_CONTAINER_NAME }}" \
+            GOLD_CONTAINER_NAME="${{ env.GOLD_CONTAINER_NAME }}"
 
     - name: Stream Container Runtime Logs
       run: |

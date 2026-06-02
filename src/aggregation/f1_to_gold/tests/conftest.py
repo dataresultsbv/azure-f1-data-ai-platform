@@ -17,7 +17,7 @@ def mock_config(monkeypatch):
 
     monkeypatch.setenv(
         "BLOB_CONTAINER_NAME",
-        "f1-medallion"
+        "silver"
     )
 
     monkeypatch.setenv(

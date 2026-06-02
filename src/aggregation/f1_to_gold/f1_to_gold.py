@@ -18,7 +18,9 @@ class GoldAggregationConfig:
     """Manages pipeline configuration and environment variable loading."""
     def __init__(self):
         self.storage_url = os.getenv("AZURE_STORAGE_ACCOUNT_URL")
-        self.container_name = os.getenv("BLOB_CONTAINER_NAME", "")
+        # Separate variables for silver and gold root containers
+        self.silver_container = os.getenv("SILVER_CONTAINER_NAME", "silver")
+        self.gold_container = os.getenv("GOLD_CONTAINER_NAME", "gold")
         self.start_season = int(os.getenv("START_SEASON", "2014"))
         self.end_season = int(os.getenv("END_SEASON", "2025"))
         
@@ -51,6 +53,7 @@ class DuckDBCloudClient:
         logger.info("Installing and loading DuckDB Azure extension...")
         self.con.execute("INSTALL azure; LOAD azure;")
         
+        # Fix for Debian certificate visibility: force transport type to curl
         logger.info("Setting global Azure transport network type to 'curl'...")
         self.con.execute("SET GLOBAL azure_transport_option_type = 'curl';")
 
@@ -76,12 +79,12 @@ class GoldAggregationEngine:
         self.config = config
         self.client = client
         
-        self.silver_race_results = f"az://{self.config.container_name}/silver/race_results/*/*.parquet"
-        self.silver_driver_standings = f"az://{self.config.container_name}/silver/driver_standings/*/*.parquet"
+        # Paths updated to use root-level container targets directly
+        self.silver_race_results = f"az://{self.config.silver_container}/race_results/*/*.parquet"
+        self.silver_driver_standings = f"az://{self.config.silver_container}/driver_standings/*/*.parquet"
+        self.silver_drivers = f"az://{self.config.silver_container}/drivers/*.parquet"
         
-        self.silver_drivers = f"az://{self.config.container_name}/silver/drivers/*.parquet"
-        
-        self.gold_destination = f"az://{self.config.container_name}/gold/driver_season_summary.parquet"
+        self.gold_destination = f"az://{self.config.gold_container}/driver_season_summary.parquet"
 
     def process(self):
         """Executes analytical logic and materializes the unified Gold dataset."""
