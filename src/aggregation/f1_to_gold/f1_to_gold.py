@@ -47,9 +47,12 @@ class DuckDBCloudClient:
         self._authenticate()
 
     def _initialize_extensions(self):
-        """Loads required core cloud drivers."""
+        """Loads required core cloud drivers and configures network options."""
         logger.info("Installing and loading DuckDB Azure extension...")
         self.con.execute("INSTALL azure; LOAD azure;")
+        
+        logger.info("Setting global Azure transport network type to 'curl'...")
+        self.con.execute("SET GLOBAL azure_transport_option_type = 'curl';")
 
     def _authenticate(self):
         """Sets up secure User-Assigned Managed Identity tracking for cloud paths."""
@@ -141,6 +144,7 @@ class GoldAggregationEngine:
         logger.info(f"Executing cloud transformations directly into target layer...")
         self.client.execute_query(aggregation_sql)
         logger.info(f"Gold table successfully generated and exported to: {self.gold_destination}")
+
 
 if __name__ == "__main__":
     logger.info("Initializing Gold Medallion Platform Sequence...")

@@ -5,9 +5,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Install system-level CA certificates so DuckDB can make secure HTTPS calls
+# Install certs and map the RedHat symlink that DuckDB expects by default
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
+    && mkdir -p /etc/pki/tls/certs \
+    && ln -s /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt \
     && rm -rf /var/lib/apt/lists/*
 
 COPY src/aggregation/f1_to_gold/requirements.txt .
