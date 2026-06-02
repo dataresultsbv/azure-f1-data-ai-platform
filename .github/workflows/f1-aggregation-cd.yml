@@ -1,9 +1,6 @@
 name: '4b. F1 Aggregation CD'
 
 on:
-  push:
-    branches: [main]
-    paths: ['src/aggregation/f1_to_gold/**']
   workflow_run:
     workflows: ["3b. F1 Transformation CD"]
     types: [completed]

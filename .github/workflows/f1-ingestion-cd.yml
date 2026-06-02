@@ -1,11 +1,6 @@
 name: '2b. F1 Ingestion CD'
 
 on:
-
-  push:
-      branches:
-        - main
-
   workflow_dispatch:
 
 permissions:

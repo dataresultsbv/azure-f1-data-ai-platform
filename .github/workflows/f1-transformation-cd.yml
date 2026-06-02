@@ -1,9 +1,6 @@
 name: '3b. F1 Transformation CD'
 
 on:
-  push:
-    branches: [main]
-    paths: ['src/transformation/f1_to_silver/**']
   workflow_run:
     workflows: ["2b. F1 Ingestion CD"]
     types: [completed]
