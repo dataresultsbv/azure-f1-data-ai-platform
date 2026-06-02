@@ -1,11 +1,11 @@
-name: '3b. F1 Transformation CD'
+name: '4b. F1 Aggregation CD'
 
 on:
   push:
     branches: [main]
-    paths: ['src/transformation/f1_to_silver/**']
+    paths: ['src/aggregation/f1_to_gold/**']
   workflow_run:
-    workflows: ["2b. F1 Ingestion CD"]
+    workflows: ["3b. F1 Transformation CD"]
     types: [completed]
   workflow_dispatch:
 
@@ -17,12 +17,11 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   ACR_NAME: 'acrafdap123987123'
   RESOURCE_GROUP: 'rg-afdap123987123'
-  ACI_NAME: 'ci-f1-silver-transformation-afdap123987123'
+  ACI_NAME: 'ci-f1-gold-aggregation-afdap123987123'
   PYTHONUNBUFFERED: '1'
 
 jobs:
-  build-and-run-transformation:
-    name: 'Build and Run Transformation'
+  build-and-run-aggregation:
     if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
@@ -30,7 +29,7 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Azure Login via OIDC (Managed Identity)
+    - name: Azure Login via OIDC
       uses: azure/login@v2
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -43,15 +42,15 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Build and Push Transformation Docker Image
+    - name: Build and Push Aggregation Docker Image
       uses: docker/build-push-action@v5
       with:
         context: .
-        file: ./src/transformation/f1_to_silver/Dockerfile # Specifieke dockerfile
+        file: ./src/aggregation/f1_to_gold/Dockerfile
         push: true
         tags: |
-          ${{ env.ACR_NAME }}.azurecr.io/f1_silver_transformation:latest
-          ${{ env.ACR_NAME }}.azurecr.io/f1_silver_transformation:${{ github.sha }}
+          ${{ env.ACR_NAME }}.azurecr.io/f1_gold_aggregation:latest
+          ${{ env.ACR_NAME }}.azurecr.io/f1_gold_aggregation:${{ github.sha }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
@@ -61,12 +60,12 @@ jobs:
         echo "::add-mask::$ACR_PASSWORD"
         echo "PASSWORD=$ACR_PASSWORD" >> $GITHUB_ENV
 
-    - name: Update ACI to run latest transformation image
+    - name: Update ACI to run latest aggregation image
       run: |
         az container create \
           --resource-group ${{ env.RESOURCE_GROUP }} \
           --name ${{ env.ACI_NAME }} \
-          --image ${{ env.ACR_NAME }}.azurecr.io/f1_silver_transformation:${{ github.sha }} \
+          --image ${{ env.ACR_NAME }}.azurecr.io/f1_gold_aggregation:${{ github.sha }} \
           --os-type Linux \
           --restart-policy Never \
           --cpu 0.5 \
@@ -74,8 +73,8 @@ jobs:
           --registry-login-server ${{ env.ACR_NAME }}.azurecr.io \
           --registry-username ${{ env.ACR_NAME }} \
           --registry-password ${{ env.PASSWORD }} \
-          --assign-identity "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-f1-transformation-afdap123987123" \
-          --environment-variables PYTHONUNBUFFERED="1" AZURE_STORAGE_ACCOUNT_URL="https://stafdap123987123.blob.core.windows.net" START_SEASON="2024" END_SEASON="2024"
+          --assign-identity "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-f1-aggregation-afdap123987123" \
+          --environment-variables PYTHONUNBUFFERED="1" AZURE_STORAGE_ACCOUNT_URL="https://stafdap123987123.blob.core.windows.net" START_SEASON="2014" END_SEASON="2025"
 
     - name: Stream Container Runtime Logs
       run: |

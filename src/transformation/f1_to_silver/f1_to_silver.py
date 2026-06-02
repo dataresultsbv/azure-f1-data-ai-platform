@@ -7,7 +7,6 @@ from typing import List, Tuple
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient
 
-# Configure logging according to corporate container specs
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -30,7 +29,6 @@ class F1Transformer:
         """Parses results JSON into circuits, races, drivers, constructors, and race_results."""
         raw_df = pl.read_json(io.BytesIO(json_bytes))
         
-        # Explode the base structure into individual races and unnest the struct fields
         races_exploded = (
             raw_df
             .select(pl.col("MRData").struct.field("RaceTable").struct.field("Races"))
@@ -38,10 +36,8 @@ class F1Transformer:
             .unnest("Races")
         )
         
-        # Add numeric raceId (e.g., 202401 for 2024 round 1)
         races_with_id = races_exploded.with_columns(self.extract_race_id_expr())
         
-        ###### CIRCUITS #####
         circuits = (
             races_with_id
             .select("Circuit")
@@ -57,7 +53,6 @@ class F1Transformer:
             ])
         )
         
-        ###### RACES #####
         races = races_with_id.select([
             pl.col("raceId"),
             pl.col("season").cast(pl.Int32),
@@ -69,7 +64,6 @@ class F1Transformer:
             pl.col("url")
         ])
         
-        # Explode to driver level for results and unnest fields
         results_exploded = (
             races_with_id
             .select(["raceId", "season", "Results"])
@@ -81,7 +75,6 @@ class F1Transformer:
             )
         )
         
-        ###### DRIVERS #####
         drivers = (
             results_exploded
             .select("Driver")
@@ -98,7 +91,6 @@ class F1Transformer:
             ])
         )
         
-        ###### CONSTRUCTORS #####
         constructors = (
             results_exploded
             .select("Constructor")
@@ -111,7 +103,6 @@ class F1Transformer:
             ])
         )
         
-        ###### RACE RESULTS #####
         race_results = results_exploded.select([
             pl.col("raceId"),
             pl.col("season").cast(pl.Int32),
@@ -210,7 +201,7 @@ class F1StorageHandler:
 
     def write_silver_unpartitioned(self, df: pl.DataFrame, table_name: str) -> None:
         """Writes the deduplicated data to the tables directly at the root level."""
-        blob_path = f"{table_name}/master.parquet"
+        blob_path = f"{table_name}/full.parquet"
         logger.info(f"STATUS - Overwriting table in Silver: {blob_path}")
         self._upload_to_silver(df, blob_path)
 
@@ -241,7 +232,6 @@ class F1Orchestrator:
         for season in self.seasons:
             logger.info(f"STATUS - Processing Season {season}...")
             
-            # ###### RESULTS #####
             try:
                 results_bytes = self.storage.read_bronze_blob(f"f1/results/season={season}/bronze_results_{season}.json")
                 circuits, races, drivers, constructors, race_results = self.transformer.transform_results(results_bytes)
@@ -255,7 +245,6 @@ class F1Orchestrator:
             except Exception as e:
                 logger.error(f"ERROR - Failed processing results for season {season}: {e}")
 
-            # ###### DRIVER STANDINGS #####
             try:
                 ds_bytes = self.storage.read_bronze_blob(f"f1/driver_standings/season={season}/bronze_driver_standings_{season}.json")
                 driver_standings = self.transformer.transform_driver_standings(ds_bytes)
@@ -263,7 +252,6 @@ class F1Orchestrator:
             except Exception as e:
                 logger.error(f"ERROR - Failed processing driver standings for season {season}: {e}")
 
-            # ###### CONSTRUCTOR STANDINGS #####
             try:
                 cs_bytes = self.storage.read_bronze_blob(f"f1/constructor_standings/season={season}/bronze_constructor_standings_{season}.json")
                 constructor_standings = self.transformer.transform_constructor_standings(cs_bytes)
@@ -273,7 +261,6 @@ class F1Orchestrator:
             
             logger.info(f"SUCCESS - Successfully processed season {season}.")
 
-        # ###### HANDLE BATCH DATA FOR CIRCUITS, DRIVERS AND CONSTRUCTORS FOR DEDUPLICATION #####
         if batch_circuits and batch_drivers and batch_constructors:
             logger.info("STATUS - Deduplicate and write driver, constructor and circuit data.")
             
@@ -289,7 +276,6 @@ class F1Orchestrator:
 
 
 if __name__ == "__main__":
-    # Retrieve configuration from Environment Variables
     STORAGE_ACCOUNT_URL = os.environ["AZURE_STORAGE_ACCOUNT_URL"]
     START_SEASON = int(os.getenv("START_SEASON", "2014"))
     END_SEASON = int(os.getenv("END_SEASON", "2025"))

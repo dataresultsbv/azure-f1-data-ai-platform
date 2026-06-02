@@ -34,3 +34,9 @@ f1_transformation_ci = {
   start_season = "2014"
   end_season   = "2025"
 }
+
+f1_aggregation_ci = {
+  ci_name      = "f1_to_gold"
+  start_season = "2014"
+  end_season   = "2025"
+}

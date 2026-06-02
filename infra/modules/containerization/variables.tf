@@ -39,3 +39,13 @@ variable "f1_transformation_ci" {
     }
   )
 }
+
+variable "f1_aggregation_ci" {
+  type = object(
+    {
+      ci_name      = string
+      start_season = string
+      end_season   = string
+    }
+  )
+}

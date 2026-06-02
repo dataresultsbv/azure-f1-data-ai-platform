@@ -1,20 +1,20 @@
-name: '3a. F1 Transformation CI'
+name: '4a. F1 Aggregation CI'
 
 on:
   push:
     branches-ignore: [main]
-    paths: ['src/transformation/f1_to_silver/**']
+    paths: ['src/aggregation/f1_to_gold/**']
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
-    paths: ['src/transformation/f1_to_silver/**']
+    paths: ['src/aggregation/f1_to_gold/**']
 
 permissions:
   contents: read
 
 jobs:
   pytest-validation:
-    name: 'Unit Tests: Transformation'
+    name: 'Unit Tests: Aggregation'
     runs-on: ubuntu-latest
     steps:
 
@@ -26,15 +26,15 @@ jobs:
       with:
         python-version: '3.11'
         cache: 'pip'
-        cache-dependency-path: 'src/transformation/f1_to_silver/requirements.txt'
+        cache-dependency-path: 'src/aggregation/f1_to_gold/requirements.txt'
 
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-      working-directory: src/transformation/f1_to_silver
+      working-directory: src/aggregation/f1_to_gold
 
     - name: Run Unit Tests
       env: { PYTHONPATH: . }
       run: python -m pytest -v
-      working-directory: src/transformation/f1_to_silver
+      working-directory: src/aggregation/f1_to_gold

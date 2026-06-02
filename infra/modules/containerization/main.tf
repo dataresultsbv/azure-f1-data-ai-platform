@@ -14,6 +14,13 @@ resource "azurerm_user_assigned_identity" "transformation_identity" {
   tags                = var.tags
 }
 
+resource "azurerm_user_assigned_identity" "aggregation_identity" {
+  name                = "id-f1-aggregation-${var.resource_name_suffix}"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  tags                = var.tags
+}
+
 # 2. SHARED CONTAINER REGISTRY
 
 resource "azurerm_container_registry" "container_registry" {
@@ -114,7 +121,51 @@ resource "azurerm_container_group" "f1_transformation_group" {
   }
 }
 
-# 5. PERMISSIONS (RBAC) ON STORAGE
+# 5. F1 AGGREGATION CONTAINER GROUP
+
+resource "azurerm_container_group" "f1_aggregation_group" {
+  name                = replace("ci-${var.f1_aggregation_ci.ci_name}-${var.resource_name_suffix}", "_", "-")
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  os_type             = "Linux"
+  restart_policy      = "Never"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.aggregation_identity.id]
+  }
+
+  container {
+    name   = replace(var.f1_aggregation_ci.ci_name, "_", "-")
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "1.0"
+
+  ports {
+      port     = 80
+      protocol = "TCP"
+    }
+
+    environment_variables = {
+      START_SEASON              = var.f1_aggregation_ci.start_season
+      END_SEASON                = var.f1_aggregation_ci.end_season
+      AZURE_STORAGE_ACCOUNT_URL = "https://${var.storage_account_name}.dfs.core.windows.net"
+    }
+  }
+
+  image_registry_credential {
+    server   = azurerm_container_registry.container_registry.login_server
+    username = azurerm_container_registry.container_registry.admin_username
+    password = azurerm_container_registry.container_registry.admin_password
+  }
+  tags = var.tags
+
+  lifecycle {
+    ignore_changes = [container[0].image]
+  }
+}
+
+# 6. PERMISSIONS (RBAC) ON STORAGE
 
 data "azurerm_subscription" "current" {}
 
@@ -128,4 +179,10 @@ resource "azurerm_role_assignment" "transformation_to_storage" {
   scope                = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/${var.resource_group_name}/providers/Microsoft.Storage/storageAccounts/${var.storage_account_name}"
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = azurerm_user_assigned_identity.transformation_identity.principal_id
+}
+
+resource "azurerm_role_assignment" "aggregation_to_storage" {
+  scope                = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/${var.resource_group_name}/providers/Microsoft.Storage/storageAccounts/${var.storage_account_name}"
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.aggregation_identity.principal_id
 }
