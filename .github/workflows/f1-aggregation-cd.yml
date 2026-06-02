@@ -62,6 +62,12 @@ jobs:
 
     - name: Update ACI to run latest aggregation image
       run: |
+        USER_MI_CLIENT_ID=$(az identity show \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --name id-f1-aggregation-afdap123987123 \
+          --query clientId \
+          --output tsv)
+        
         az container create \
           --resource-group ${{ env.RESOURCE_GROUP }} \
           --name ${{ env.ACI_NAME }} \
@@ -74,7 +80,13 @@ jobs:
           --registry-username ${{ env.ACR_NAME }} \
           --registry-password ${{ env.PASSWORD }} \
           --assign-identity "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-f1-aggregation-afdap123987123" \
-          --environment-variables PYTHONUNBUFFERED="1" AZURE_STORAGE_ACCOUNT_URL=${{ env.AZURE_STORAGE_ACCOUNT_URL }} START_SEASON=${{ env.START_SEASON }} END_SEASON=${{ env.END_SEASON }}
+          --environment-variables \
+            PYTHONUNBUFFERED="1" \
+            AZURE_STORAGE_ACCOUNT_URL="${{ env.AZURE_STORAGE_ACCOUNT_URL }}" \
+            START_SEASON="${{ env.START_SEASON }}" \
+            END_SEASON="${{ env.END_SEASON }}" \
+            AZURE_CLIENT_ID="$USER_MI_CLIENT_ID" \
+            BLOB_CONTAINER_NAME="f1-medallion-data"
 
     - name: Stream Container Runtime Logs
       run: |

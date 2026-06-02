@@ -57,7 +57,7 @@ class DuckDBCloudClient:
         self.con.execute(f"""
             CREATE SECRET azure_identity (
                 TYPE AZURE,
-                PROVIDER MANAGED_IDENTITY,
+                PROVIDER CREDENTIAL_CHAIN,
                 ACCOUNT_NAME '{self.config.account_name}'
             );
         """)
