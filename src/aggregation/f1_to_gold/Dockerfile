@@ -10,7 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src/aggregation/f1_to_gold/f1_to_gold.py .
 
-RUN useradd -m-u 8888 appuser && chown -R appuser:appuser /app
+RUN useradd -m -u 8888 appuser && chown -R appuser:appuser /app
 USER appuser
 
 CMD ["python", "f1_to_gold.py"]
