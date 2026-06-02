@@ -4,7 +4,7 @@ def test_extract_account_name(monkeypatch):
 
     monkeypatch.setenv(
         "AZURE_STORAGE_ACCOUNT_URL",
-        "https://f1storage.blob.core.windows.net"
+        "https://f1storage.dfs.core.windows.net"
     )
 
     config = GoldAggregationConfig()
@@ -16,7 +16,7 @@ def test_config_reads_environment_variables(monkeypatch):
 
     monkeypatch.setenv(
         "AZURE_STORAGE_ACCOUNT_URL",
-        "https://f1storage.blob.core.windows.net"
+        "https://f1storage.dfs.core.windows.net"
     )
 
     monkeypatch.setenv(
