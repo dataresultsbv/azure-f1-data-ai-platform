@@ -16,6 +16,9 @@ env:
   RESOURCE_GROUP: 'rg-afdap123987123'
   ACI_NAME: 'ci-f1-gold-aggregation-afdap123987123'
   PYTHONUNBUFFERED: '1'
+  AZURE_STORAGE_ACCOUNT_URL: 'https://stafdap123987123.dfs.core.windows.net'
+  START_SEASON: '2014'
+  END_SEASON: '2025'
 
 jobs:
   build-and-run-aggregation:
@@ -71,7 +74,7 @@ jobs:
           --registry-username ${{ env.ACR_NAME }} \
           --registry-password ${{ env.PASSWORD }} \
           --assign-identity "/subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-f1-aggregation-afdap123987123" \
-          --environment-variables PYTHONUNBUFFERED="1" AZURE_STORAGE_ACCOUNT_URL="https://stafdap123987123.blob.core.windows.net" START_SEASON="2014" END_SEASON="2025"
+          --environment-variables PYTHONUNBUFFERED="1" AZURE_STORAGE_ACCOUNT_URL=${{ env.AZURE_STORAGE_ACCOUNT_URL }} START_SEASON=${{ env.START_SEASON }} END_SEASON=${{ env.END_SEASON }}
 
     - name: Stream Container Runtime Logs
       run: |
