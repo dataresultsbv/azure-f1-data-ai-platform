@@ -14,7 +14,7 @@ env:
   ACI_NAME: 'ci-f1-api-ingestion-afdap123987123'
   PYTHONUNBUFFERED: '1'
   AZURE_STORAGE_ACCOUNT_URL: 'https://samainafdap123987123.dfs.core.windows.net'
-  STORAGE_ACCOUNT_NAME: 'stafdap123987123'
+  STORAGE_ACCOUNT_NAME: 'samainafdap123987123'
   CONTAINER_NAME: 'f1-raw-ingestion'
   START_SEASON: '2014'
   END_SEASON: '2025'
