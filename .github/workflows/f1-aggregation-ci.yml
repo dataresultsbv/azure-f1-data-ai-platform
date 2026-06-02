@@ -8,6 +8,7 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened]
     paths: ['src/aggregation/f1_to_gold/**']
+  workflow_dispatch:
 
 permissions:
   contents: read
