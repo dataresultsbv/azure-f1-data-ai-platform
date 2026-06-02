@@ -5,6 +5,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# Install system-level CA certificates so DuckDB can make secure HTTPS calls
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY src/aggregation/f1_to_gold/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
