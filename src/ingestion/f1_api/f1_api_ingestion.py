@@ -60,7 +60,7 @@ class ADLSUPLOADER:
 
     def _initialize_client(self):
         """Initializeses the Azure Blob Service Client using DefaultAzureCredential."""
-        account_url = f"https://{self.storage_account_name}.dfs.core.windows.net"
+        account_url = f"https://{self.storage_account_name}.blob.core.windows.net"
         try:
             credential = DefaultAzureCredential()
             blob_service_client = BlobServiceClient(account_url, credential=credential)
