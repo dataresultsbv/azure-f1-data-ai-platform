@@ -51,7 +51,7 @@ def test_adls_uploader_initialization(mock_cred, mock_blob_service):
     
     assert uploader.container_client == mock_container_client
     mock_blob_service.assert_called_once_with(
-        "https://testsa.dfs.core.windows.net", 
+        "https://testsa.blob.core.windows.net", 
         credential=mock_cred.return_value
     )
 
