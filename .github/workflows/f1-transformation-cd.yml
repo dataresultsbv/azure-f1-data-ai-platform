@@ -16,7 +16,7 @@ env:
   RESOURCE_GROUP: 'rg-afdap123987123'
   ACI_NAME: 'ci-f1-silver-transformation-afdap123987123'
   PYTHONUNBUFFERED: '1'
-  AZURE_STORAGE_ACCOUNT_URL: 'https://stafdap123987123.dfs.core.windows.net'
+  AZURE_STORAGE_ACCOUNT_URL: 'https://stmainafdap123987123.dfs.core.windows.net'
   START_SEASON: '2014'
   END_SEASON: '2025'
 

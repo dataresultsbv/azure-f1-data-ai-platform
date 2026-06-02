@@ -13,7 +13,7 @@ env:
   RESOURCE_GROUP: 'rg-afdap123987123'
   ACI_NAME: 'ci-f1-api-ingestion-afdap123987123'
   PYTHONUNBUFFERED: '1'
-  AZURE_STORAGE_ACCOUNT_URL: 'https://stafdap123987123.dfs.core.windows.net'
+  AZURE_STORAGE_ACCOUNT_URL: 'https://stmainafdap123987123.dfs.core.windows.net'
   STORAGE_ACCOUNT_NAME: 'stafdap123987123'
   CONTAINER_NAME: 'f1-raw-ingestion'
   START_SEASON: '2014'
