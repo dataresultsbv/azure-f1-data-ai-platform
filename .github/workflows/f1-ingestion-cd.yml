@@ -15,7 +15,7 @@ env:
   PYTHONUNBUFFERED: '1'
   AZURE_STORAGE_ACCOUNT_URL: 'https://samainafdap123987123.blob.core.windows.net'
   STORAGE_ACCOUNT_NAME: 'samainafdap123987123'
-  CONTAINER_NAME: 'f1-raw-ingestion'
+  CONTAINER_NAME: 'bronze'
   START_SEASON: '2014'
   END_SEASON: '2025'
 
