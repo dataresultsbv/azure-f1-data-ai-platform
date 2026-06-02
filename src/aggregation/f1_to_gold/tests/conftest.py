@@ -12,7 +12,7 @@ from f1_to_gold import (
 def mock_config(monkeypatch):
     monkeypatch.setenv(
         "AZURE_STORAGE_ACCOUNT_URL",
-        "https://myaccount.blob.core.windows.net"
+        "https://myaccount.dfs.core.windows.net"
     )
 
     monkeypatch.setenv(
