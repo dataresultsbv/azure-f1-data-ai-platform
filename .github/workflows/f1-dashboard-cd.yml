@@ -36,6 +36,7 @@ jobs:
 
     - name: Fetch Gold Parquet Data from ADLS Gen2
       run: |
+        mkdir -p ./${{ env.DASHBOARD_DIR }}/sources/f1_gold_data/
         az storage blob download-batch \
           --account-name ${{ env.STORAGE_ACCOUNT_NAME }} \
           --destination ./${{ env.DASHBOARD_DIR }}/sources/f1_gold_data/ \
