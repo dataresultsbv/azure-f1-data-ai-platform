@@ -17,19 +17,59 @@ logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(l
 logging.getLogger("azure.identity").setLevel(logging.WARNING)
 
 class F1CLIENT:
-    """Responsible for all communication with the jolpica-f1-api."""
+    """Responsible for all communication with the jolpica-f1-api with auto-pagination."""
     
     BASE_URL = "https://api.jolpi.ca/ergast/f1"
 
     def __init__(self, timeout: int = 10):
         self.timeout = timeout
 
+    def _merge_payloads(self, base_payload: Dict[str, Any], new_payload: Dict[str, Any]) -> None:
+        """Appends nested data lists from consecutive paginated responses."""
+        base_mr = base_payload.get("MRData", {})
+        new_mr = new_payload.get("MRData", {})
+    
+        if "RaceTable" in base_mr and "RaceTable" in new_mr:
+            base_mr["RaceTable"]["Races"].extend(new_mr["RaceTable"].get("Races", []))
+            
+        elif "StandingsTable" in base_mr and "StandingsTable" in new_mr:
+            base_lists = base_mr["StandingsTable"].get("StandingsLists", [])
+            new_lists = new_mr["StandingsTable"].get("StandingsLists", [])
+            if base_lists and new_lists:
+                if "DriverStandings" in base_lists[0]:
+                    base_lists[0]["DriverStandings"].extend(new_lists[0].get("DriverStandings", []))
+                elif "ConstructorStandings" in base_lists[0]:
+                    base_lists[0]["ConstructorStandings"].extend(new_lists[0].get("ConstructorStandings", []))
+
     def _fetch_data(self, endpoint_url: str) -> Dict[str, Any]:
-        """Generic helper to fetch data from the API."""
-        params = {"limit": 1000}
-        response = requests.get(endpoint_url, params=params, timeout=self.timeout)
-        response.raise_for_status()
-        return response.json()
+        """Generic helper to handle API limit ceilings via automatic offsetting."""
+        limit = 100
+        offset = 0
+        combined_data = None
+        
+        while True:
+            params = {"limit": limit, "offset": offset}
+            response = requests.get(endpoint_url, params=params, timeout=self.timeout)
+            response.raise_for_status()
+            payload = response.json()
+            
+            mr_data = payload.get("MRData", {})
+            total = int(mr_data.get("total", 0))
+            
+            if combined_data is None:
+                combined_data = payload
+            else:
+                self._merge_payloads(combined_data, payload)
+                
+            offset += limit
+            
+            if offset >= total or total == 0:
+                break
+                
+        if combined_data and "MRData" in combined_data:
+            combined_data["MRData"]["limit"] = offset
+            
+        return combined_data
 
     def fetch_season_results(self, season: int) -> Dict[str, Any]:
         """Retrieves race results for a specific season."""

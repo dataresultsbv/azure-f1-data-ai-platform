@@ -38,7 +38,9 @@ select
     wins,
     podiums,
     fastest_laps,
-    dnfs
+    dnfs,
+    avg_grid_position,
+    positions_gained
 from driver_season_summary
 where (
   '${inputs.driver.value}' = 'All' 
@@ -106,6 +108,20 @@ Driver Standings Overview
     xType="category"
   />
 </Grid>
+
+## 🏎️ Advanced Driver Performance Metrics
+
+<Grid cols="2">
+  <BarChart data="{driver_metrics}" series="driver_name" title="Total Fastest Laps by Season" x="season" xType="category" y="fastest_laps"/>
+
+  <BarChart data="{driver_metrics}" series="driver_name" subtitle="Positive means gained positions from starting grid" title="Net Positions Gained/Lost in Races" x="season" xType="category" y="positions_gained"/>
+</Grid>
+
+## ⏱️ Qualifying Efficiency: Average Grid Position Trajectory
+
+A lower number means better qualifying performance (e.g., closer to Pole Position).
+
+<LineChart data="{driver_metrics}" series="driver_name" x="season" xType="category" y="avg_grid_position" yFmt="num"/>
 
 ## 👑 Global Driver Longevity & Points Dominance
 
