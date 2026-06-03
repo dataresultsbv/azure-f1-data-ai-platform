@@ -21,3 +21,5 @@ __pycache__/
 # Ignore local raw source data files
 f1-dashboard/sources/f1_gold/*.parquet
 .evidence/
+
+audit_lake.py

@@ -1,6 +1,8 @@
 import os
 import pytest
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
 from f1_api_ingestion import F1CLIENT, ADLSUPLOADER
 
 @pytest.mark.integration
