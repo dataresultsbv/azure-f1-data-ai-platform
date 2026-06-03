@@ -3,7 +3,9 @@ import json
 import logging
 import sys
 import requests
+import time
 from typing import Dict, Any
+from urllib3.util import Retry
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient
 
@@ -17,18 +19,36 @@ logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(l
 logging.getLogger("azure.identity").setLevel(logging.WARNING)
 
 class F1CLIENT:
-    """Responsible for all communication with the jolpica-f1-api with auto-pagination."""
+    """Responsible for communication with the jolpica-f1-api with auto-pagination and rate-limiting resilience."""
     
     BASE_URL = "https://api.jolpi.ca/ergast/f1"
 
-    def __init__(self, timeout: int = 10):
+    def __init__(self, timeout: int = 15):
         self.timeout = timeout
+        self.session = self._initialize_session()
+
+    def _initialize_session(self) -> requests.Session:
+        """Configures a request session with a robust exponential backoff retry strategy."""
+        session = requests.Session()
+        
+        # Configure retries to catch rate limits (429) and transient server hiccups
+        retry_strategy = Retry(
+            total=5,                        # Max number of retries before giving up
+            backoff_factor=2,               # Delays: 2s, 4s, 8s, 16s... between retries
+            status_forcelist=[429, 500, 502, 503, 504], # Status codes to trigger a retry
+            raise_on_status=False           # Allows response.raise_for_status() to handle the final failure
+        )
+        
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        session.mount("https://", adapter)
+        session.mount("http://", adapter)
+        return session
 
     def _merge_payloads(self, base_payload: Dict[str, Any], new_payload: Dict[str, Any]) -> None:
         """Appends nested data lists from consecutive paginated responses."""
         base_mr = base_payload.get("MRData", {})
         new_mr = new_payload.get("MRData", {})
-    
+        
         if "RaceTable" in base_mr and "RaceTable" in new_mr:
             base_mr["RaceTable"]["Races"].extend(new_mr["RaceTable"].get("Races", []))
             
@@ -42,17 +62,19 @@ class F1CLIENT:
                     base_lists[0]["ConstructorStandings"].extend(new_lists[0].get("ConstructorStandings", []))
 
     def _fetch_data(self, endpoint_url: str) -> Dict[str, Any]:
-        """Generic helper to handle API limit ceilings via automatic offsetting."""
+        """Generic helper to handle API limit ceilings with built-in throttling."""
         limit = 100
         offset = 0
         combined_data = None
         
         while True:
             params = {"limit": limit, "offset": offset}
-            response = requests.get(endpoint_url, params=params, timeout=self.timeout)
-            response.raise_for_status()
-            payload = response.json()
             
+            # Using the adaptive session instead of generic requests.get
+            response = self.session.get(endpoint_url, params=params, timeout=self.timeout)
+            response.raise_for_status()
+            
+            payload = response.json()
             mr_data = payload.get("MRData", {})
             total = int(mr_data.get("total", 0))
             
@@ -65,6 +87,9 @@ class F1CLIENT:
             
             if offset >= total or total == 0:
                 break
+            
+            # Be polite: Add a 1-second delay between successful page requests to respect the API gateway
+            time.sleep(1.0)
                 
         if combined_data and "MRData" in combined_data:
             combined_data["MRData"]["limit"] = offset
