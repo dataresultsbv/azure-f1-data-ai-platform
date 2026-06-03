@@ -52,3 +52,11 @@ module "containerapp" {
   depends_on = [module.network]
 }
 
+module "dashboard" {
+  source = "../../modules/dashboard"
+
+  resource_name_suffix  = var.resource_name_suffix
+  location              = var.location
+  resource_group_name   = var.resource_group_name
+  tags                  = var.tags
+}
