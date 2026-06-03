@@ -46,21 +46,30 @@ class F1CLIENT:
         return session
 
     def _merge_payloads(self, base_payload: Dict[str, Any], new_payload: Dict[str, Any]) -> None:
-        """Appends nested data lists from consecutive paginated responses."""
-        base_mr = base_payload.get("MRData", {})
-        new_mr = new_payload.get("MRData", {})
+    """Intelligently merges nested data lists, blending split pages for identical race rounds."""
+    base_mr = base_payload.get("MRData", {})
+    new_mr = new_payload.get("MRData", {})
+    
+    if "RaceTable" in base_mr and "RaceTable" in new_mr:
+        base_races = base_mr["RaceTable"].get("Races", [])
+        new_races = new_mr["RaceTable"].get("Races", [])
         
-        if "RaceTable" in base_mr and "RaceTable" in new_mr:
-            base_mr["RaceTable"]["Races"].extend(new_mr["RaceTable"].get("Races", []))
+        for new_race in new_races:
+            existing_race = next((r for r in base_races if r.get("round") == new_race.get("round")), None)
             
-        elif "StandingsTable" in base_mr and "StandingsTable" in new_mr:
-            base_lists = base_mr["StandingsTable"].get("StandingsLists", [])
-            new_lists = new_mr["StandingsTable"].get("StandingsLists", [])
-            if base_lists and new_lists:
-                if "DriverStandings" in base_lists[0]:
-                    base_lists[0]["DriverStandings"].extend(new_lists[0].get("DriverStandings", []))
-                elif "ConstructorStandings" in base_lists[0]:
-                    base_lists[0]["ConstructorStandings"].extend(new_lists[0].get("ConstructorStandings", []))
+            if existing_race:
+                existing_race.get("Results", []).extend(new_race.get("Results", []))
+            else:
+                base_races.append(new_race)
+                
+    elif "StandingsTable" in base_mr and "StandingsTable" in new_mr:
+        base_lists = base_mr["StandingsTable"].get("StandingsLists", [])
+        new_lists = new_mr["StandingsTable"].get("StandingsLists", [])
+        if base_lists and new_lists:
+            if "DriverStandings" in base_lists[0]:
+                base_lists[0]["DriverStandings"].extend(new_lists[0].get("DriverStandings", []))
+            elif "ConstructorStandings" in base_lists[0]:
+                base_lists[0]["ConstructorStandings"].extend(new_lists[0].get("ConstructorStandings", []))
 
     def _fetch_data(self, endpoint_url: str) -> Dict[str, Any]:
         """Generic helper to handle API limit ceilings with built-in throttling."""
