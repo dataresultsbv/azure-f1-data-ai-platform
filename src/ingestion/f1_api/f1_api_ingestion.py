@@ -2,12 +2,13 @@ import os
 import json
 import logging
 import sys
-import requests
 import time
+import requests
 from typing import Dict, Any
-from urllib3.util import Retry
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
 
 logging.basicConfig(
     level=logging.INFO,
