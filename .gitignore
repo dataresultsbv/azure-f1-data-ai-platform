@@ -17,6 +17,7 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+.pytest_cache
 
 # Ignore local raw source data files
 f1-dashboard/sources/f1_gold/*.parquet
