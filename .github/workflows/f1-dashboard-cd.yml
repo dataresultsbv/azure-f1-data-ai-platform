@@ -76,5 +76,5 @@ jobs:
         npx @azure/static-web-apps-cli deploy ./build \
           --deployment-token "$SWA_DEPLOY_TOKEN" \
           --env production \
-          --app-location ./${{ env.DASHBOARD_DIR }}
+          --app-location .
       working-directory: ./${{ env.DASHBOARD_DIR }}
