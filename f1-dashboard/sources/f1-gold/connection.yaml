@@ -1,0 +1,4 @@
+name: f1_gold
+type: duckdb
+options:
+  filename: ":memory:"
