@@ -8,6 +8,9 @@
 # Crash logs
 crash.log
 
+# local data
+data/
+
 # Python .venv folders
 **/.venv/
 

@@ -63,6 +63,20 @@ The workflow 3b. F1 Transformation CD utilizes a workflow_run trigger that liste
 
 As soon as the Ingestion container successfully completes its run (and drops the raw data into the bronze Data Lake Gen2 container), the transformation pipeline automatically kicks off to process the data transition into silver.
 
+### Step 6: Automatic Trigger - F1 Aggregation CD 🏗️
+The aggregation pipeline runs completely hands-off once the data is cleaned.
+
+The workflow 4b. F1 Aggregation CD triggers automatically on the completion of 3b. F1 Transformation CD.
+
+This stage builds the aggregation engine, launches an Azure Container Instance using its assigned identity context, runs your analytical metrics calculations over the silver delta layer, and generates the final high-performance business views into the gold data lake container as Parquet.
+
+### Step 7: Automatic Trigger - F1 Dashboard CD 📊
+The presentation layer updates automatically once the data tier finishes processing.
+
+The workflow 5. F1 Dashboard CD utilizes a workflow_run trigger that listens directly for the successful completion of 4b. F1 Aggregation CD.
+
+As soon as the aggregation pipeline finishes generating the final metrics and saves the gold Parquet files into ADLS Gen2, the dashboard pipeline kicks off. It connects securely via Azure OIDC, pulls the fresh data directly from the gold storage container, ingests the sources, and compiles your Evidence site. Finally, it uses the Azure CLI to dynamically query the SWA deployment key into memory and ships the built assets directly to Azure Static Web Apps—keeping the entire CI/CD process completely secretless.
+
 ## 🧹 Teardown/Destroy
 To avoid unnecessary cloud costs when not actively developing, the entire environment can be destroyed in reverse order.
 
