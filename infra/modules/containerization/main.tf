@@ -1,5 +1,4 @@
 # 1. USER-ASSIGNED MANAGED IDENTITIES
-
 resource "azurerm_user_assigned_identity" "ingestion_identity" {
   name                = "id-f1-ingestion-${var.resource_name_suffix}"
   resource_group_name = var.resource_group_name
@@ -21,19 +20,17 @@ resource "azurerm_user_assigned_identity" "aggregation_identity" {
   tags                = var.tags
 }
 
-# 2. SHARED CONTAINER REGISTRY
-
+# 2. SHARED CONTAINER REGISTRY (Admin Access Explicitly Disabled)
 resource "azurerm_container_registry" "container_registry" {
   name                = "acr${var.resource_name_suffix}"
   resource_group_name = var.resource_group_name
   location            = var.location
   sku                 = "Basic"
-  admin_enabled       = true
+  admin_enabled       = false
   tags                = var.tags
 }
 
 # 3. F1 INGESTION CONTAINER GROUP
-
 resource "azurerm_container_group" "f1_ingestion_group" {
   name                = replace("ci-${var.f1_api_ingestion_ci.ci_name}-${var.resource_name_suffix}", "_", "-")
   location            = var.location
@@ -66,9 +63,8 @@ resource "azurerm_container_group" "f1_ingestion_group" {
   }
 
   image_registry_credential {
-    server   = azurerm_container_registry.container_registry.login_server
-    username = azurerm_container_registry.container_registry.admin_username
-    password = azurerm_container_registry.container_registry.admin_password
+    server                    = azurerm_container_registry.container_registry.login_server
+    user_assigned_identity_id = azurerm_user_assigned_identity.ingestion_identity.id
   }
   tags = var.tags
 
@@ -78,7 +74,6 @@ resource "azurerm_container_group" "f1_ingestion_group" {
 }
 
 # 4. F1 TRANSFORMATION CONTAINER GROUP
-
 resource "azurerm_container_group" "f1_transformation_group" {
   name                = replace("ci-${var.f1_transformation_ci.ci_name}-${var.resource_name_suffix}", "_", "-")
   location            = var.location
@@ -97,7 +92,7 @@ resource "azurerm_container_group" "f1_transformation_group" {
     cpu    = "0.5"
     memory = "1.0"
 
-  ports {
+    ports {
       port     = 80
       protocol = "TCP"
     }
@@ -110,9 +105,8 @@ resource "azurerm_container_group" "f1_transformation_group" {
   }
 
   image_registry_credential {
-    server   = azurerm_container_registry.container_registry.login_server
-    username = azurerm_container_registry.container_registry.admin_username
-    password = azurerm_container_registry.container_registry.admin_password
+    server                    = azurerm_container_registry.container_registry.login_server
+    user_assigned_identity_id = azurerm_user_assigned_identity.transformation_identity.id
   }
   tags = var.tags
 
@@ -122,7 +116,6 @@ resource "azurerm_container_group" "f1_transformation_group" {
 }
 
 # 5. F1 AGGREGATION CONTAINER GROUP
-
 resource "azurerm_container_group" "f1_aggregation_group" {
   name                = replace("ci-${var.f1_aggregation_ci.ci_name}-${var.resource_name_suffix}", "_", "-")
   location            = var.location
@@ -141,7 +134,7 @@ resource "azurerm_container_group" "f1_aggregation_group" {
     cpu    = "0.5"
     memory = "1.0"
 
-  ports {
+    ports {
       port     = 80
       protocol = "TCP"
     }
@@ -154,9 +147,8 @@ resource "azurerm_container_group" "f1_aggregation_group" {
   }
 
   image_registry_credential {
-    server   = azurerm_container_registry.container_registry.login_server
-    username = azurerm_container_registry.container_registry.admin_username
-    password = azurerm_container_registry.container_registry.admin_password
+    server                    = azurerm_container_registry.container_registry.login_server
+    user_assigned_identity_id = azurerm_user_assigned_identity.aggregation_identity.id
   }
   tags = var.tags
 
@@ -165,10 +157,10 @@ resource "azurerm_container_group" "f1_aggregation_group" {
   }
 }
 
-# 6. PERMISSIONS (RBAC) ON STORAGE
-
+# 6. PERMISSIONS (RBAC) ON STORAGE & CONTAINER REGISTRY
 data "azurerm_subscription" "current" {}
 
+# Storage Assignments
 resource "azurerm_role_assignment" "ingestion_to_storage" {
   scope                = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/${var.resource_group_name}/providers/Microsoft.Storage/storageAccounts/${var.storage_account_name}"
   role_definition_name = "Storage Blob Data Contributor"
@@ -184,5 +176,23 @@ resource "azurerm_role_assignment" "transformation_to_storage" {
 resource "azurerm_role_assignment" "aggregation_to_storage" {
   scope                = "/subscriptions/${data.azurerm_subscription.current.subscription_id}/resourceGroups/${var.resource_group_name}/providers/Microsoft.Storage/storageAccounts/${var.storage_account_name}"
   role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.aggregation_identity.principal_id
+}
+
+resource "azurerm_role_assignment" "ingestion_to_acr" {
+  scope                = azurerm_container_registry.container_registry.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_user_assigned_identity.ingestion_identity.principal_id
+}
+
+resource "azurerm_role_assignment" "transformation_to_acr" {
+  scope                = azurerm_container_registry.container_registry.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_user_assigned_identity.transformation_identity.principal_id
+}
+
+resource "azurerm_role_assignment" "aggregation_to_acr" {
+  scope                = azurerm_container_registry.container_registry.id
+  role_definition_name = "AcrPull"
   principal_id         = azurerm_user_assigned_identity.aggregation_identity.principal_id
 }
