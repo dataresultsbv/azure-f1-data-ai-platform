@@ -22,7 +22,6 @@ resource "azurerm_subnet" "snet" {
   service_endpoints    = each.value.service_endpoints
 
   dynamic "delegation" {
-    # if delegation is not null, create a delegation block(return list with 1 value), otherwise skip it(return empty list)
     for_each = each.value.snet_delegation != null ? [1] : []
     content {
       name = "${each.value.snet_name}-delegation"

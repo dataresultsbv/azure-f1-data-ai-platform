@@ -58,9 +58,9 @@ azure-f1-data-ai-platform/
 │
 ├── .github/
 ├── docs/
+├── f1-dashboard/
 ├── infra/
 ├── src/
-└── tests/
 ```
 
 ### `.github/`
@@ -75,9 +75,14 @@ Contains GitHub Actions workflows for:
 Contains project version specific documentation, including:
 
 - Architecture diagrams
-- Architectural Decision Records (ADRs)
 - Design considerations
-- Deployment strategies
+- Setup Guide
+
+### `f1-dashboard/`
+Contains setup files and configuration for a static webpage dashboard using Evidence.
+
+- Page definition
+- Source SQL query definition.
 
 ### `infra/`
 Contains Infrastructure-as-Code built with Terraform.
@@ -105,11 +110,3 @@ This includes:
 - API services
 - AI workflows
 - ML pipelines
-
-### `tests/`
-Contains:
-
-- Unit tests
-- Integration tests
-- Pipeline validation tests
-- Infrastructure validation tests

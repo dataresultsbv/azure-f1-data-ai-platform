@@ -26,6 +26,14 @@ __pycache__/
 .evidence/
 .vercel/
 build/
+.svelte-kit
+build
+node_modules
+.DS_Store
+static/data
+*.options.yaml
+.vscode/settings.json
+.env
 
 # Local data cache/Parquet sources
 sources/**/*.parquet
