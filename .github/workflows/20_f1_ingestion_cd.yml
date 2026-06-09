@@ -21,7 +21,7 @@ env:
 
 jobs:
   lint:
-    uses: ./.github/workflows/reusable-lint.yml
+    uses: ./.github/workflows/90_reusable-lint.yml
   build-and-push:
     name: 'Build, Push image to ACR. Run on ACI'
     needs: lint
