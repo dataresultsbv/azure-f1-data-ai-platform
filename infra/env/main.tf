@@ -4,7 +4,7 @@ data "http" "my_public_ip" {
 }
 
 module "resource_group" {
-  source = "../../modules/general/resourcegroup"
+  source = "../modules/general/resourcegroup"
 
   resource_name_suffix = var.resource_name_suffix
   location             = var.location
@@ -12,7 +12,7 @@ module "resource_group" {
 }
 
 module "network" {
-  source = "../../modules/network/virtualnetwork"
+  source = "../modules/network/virtualnetwork"
 
   resource_group_name  = module.resource_group.resource_group_name
   resource_name_suffix = var.resource_name_suffix
@@ -25,7 +25,7 @@ module "network" {
 }
 
 module "storage" {
-  source = "../../modules/storage"
+  source = "../modules/storage"
 
   resource_group_name  = module.resource_group.resource_group_name
   resource_name_suffix = var.resource_name_suffix
@@ -39,7 +39,7 @@ module "storage" {
 }
 
 module "containerapp" {
-  source               = "../../modules/containerization"
+  source               = "../modules/containerization"
   resource_group_name  = module.resource_group.resource_group_name
   resource_name_suffix = var.resource_name_suffix
   location             = var.location
@@ -53,7 +53,7 @@ module "containerapp" {
 }
 
 module "dashboard" {
-  source = "../../modules/dashboard"
+  source = "../modules/dashboard"
 
   resource_name_suffix = var.resource_name_suffix
   location             = var.location
