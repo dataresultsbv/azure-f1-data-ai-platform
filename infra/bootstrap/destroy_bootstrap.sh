@@ -70,19 +70,16 @@ fi
 ###########################################
 
 INFRA_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TARGET_TF_DIR="${INFRA_DIR}/env"
+BACKEND_OUTPUT_PATH="${TARGET_TF_DIR}/backend.tf"
 
-for ENV in "v1" "v2"; do
-    TARGET_ENV_DIR="${INFRA_DIR}/env/${ENV}"
-    BACKEND_OUTPUT_PATH="${TARGET_ENV_DIR}/backend.tf"
-
-    echo "STATUS - Cleaning up local backend.tf configuration for $ENV..."
-    if [ -f "$BACKEND_OUTPUT_PATH" ]; then
-        rm "$BACKEND_OUTPUT_PATH"
-        echo "SUCCES - Removed local backend.tf file for $ENV."
-    else
-        echo "INFO - No local backend.tf file found to remove for $ENV."
-    fi
-done
+echo "STATUS - Cleaning up local unified backend.tf configuration..."
+if [ -f "$BACKEND_OUTPUT_PATH" ]; then
+    rm "$BACKEND_OUTPUT_PATH"
+    echo "SUCCES - Removed local unified backend.tf file."
+else
+    echo "INFO - No local unified backend.tf file found to remove."
+fi
 
 echo "==================================================================="
 echo "Successfully finished Full Enterprise Infrastructure Destroy (OIDC)"

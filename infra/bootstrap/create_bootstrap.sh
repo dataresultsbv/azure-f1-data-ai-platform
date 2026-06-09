@@ -183,27 +183,26 @@ echo "SUCCES - Managed Identity now has Data Contributor access to TFState Stora
 # PART 3: GENERATE BACKEND CONFIGURATIONS              #
 ########################################################
 INFRA_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TARGET_TF_DIR="${INFRA_DIR}/env"
+BACKEND_OUTPUT_PATH="${TARGET_TF_DIR}/backend.tf"
 
-for ENV in "v1" "v2"; do
-    echo "STATUS - Generating backend.tf config for $ENV..."
-    TARGET_ENV_DIR="${INFRA_DIR}/env/${ENV}"
-    BACKEND_OUTPUT_PATH="${TARGET_ENV_DIR}/backend.tf"
+echo "STATUS - Generating unified backend.tf config..."
 
-    mkdir -p "$TARGET_ENV_DIR"
+mkdir -p "$TARGET_TF_DIR"
 
-    cat << EOF > "$BACKEND_OUTPUT_PATH"
+cat << EOF > "$BACKEND_OUTPUT_PATH"
 terraform {
   backend "azurerm" {
     resource_group_name  = "$TFSTATE_RESOURCE_GROUP"
     storage_account_name = "$STORAGE_ACCOUNT_NAME"
     container_name       = "$CONTAINER_NAME"
-    key                  = "${ENV}/terraform.tfstate"
+    key                  = "platform.tfstate"
     use_oidc             = true
   }
 }
 EOF
-    echo "SUCCES - Wrote backend.tf to $BACKEND_OUTPUT_PATH"
-done
+
+echo "SUCCES - Wrote unified backend.tf to $BACKEND_OUTPUT_PATH"
 
 ########################################################
 # PART 4: OUTPUT INSTRUCTIONS                          #

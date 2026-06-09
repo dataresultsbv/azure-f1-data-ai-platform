@@ -2,14 +2,6 @@ name: '1b. Core Infrastructure Destroy'
 
 on:
   workflow_dispatch:
-    inputs:
-      environment_version:
-        description: 'WHICH ENVIRONMENT DO YOU WANT TO DESTROY? (v1, v2)'
-        required: true
-        type: choice
-        options:
-          - 'v1'
-          - 'v2'
 
 permissions:
   contents: read
@@ -20,14 +12,13 @@ env:
 
 jobs:
   terraform-destroy:
-    name: 'Terraform Destroy (${{ github.event.inputs.environment_version }})'
+    name: 'Terraform Destroy'
     runs-on: ubuntu-latest
     env:
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       ARM_USE_OIDC: true
-      VERSION: ${{ github.event.inputs.environment_version }}
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -39,7 +30,7 @@ jobs:
 
     - name: Terraform Init
       run: terraform init -reconfigure
-      working-directory: ./infra/env/${{ env.VERSION }}
+      working-directory: ./infra/env
 
     - name: Azure Login (Required for Firewall Punch)
       uses: azure/login@v2
@@ -59,7 +50,7 @@ jobs:
 
     - name: Terraform Destroy
       run: terraform destroy -auto-approve
-      working-directory: ./infra/env/${{ env.VERSION }}
+      working-directory: ./infra/env
 
     - name: Firewall Clean - Remove Destroy Runner IP
       if: always()

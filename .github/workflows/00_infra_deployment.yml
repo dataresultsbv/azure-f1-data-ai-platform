@@ -2,14 +2,6 @@ name: '1a. Core Infrastructure Deployment'
 
 on:
   workflow_dispatch:
-    inputs:
-      environment_version:
-        description: 'Which version should be deployed?'
-        required: true
-        type: choice
-        options:
-          - 'v1'
-          - 'v2'
 
 permissions:
   contents: read
@@ -20,14 +12,13 @@ env:
 
 jobs:
   terraform-plan:
-    name: 'Terraform Plan (${{ github.event.inputs.environment_version }})'
+    name: 'Terraform Plan'
     runs-on: ubuntu-latest
     env:
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       ARM_USE_OIDC: true
-      VERSION: ${{ github.event.inputs.environment_version }}
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -39,11 +30,11 @@ jobs:
 
     - name: Terraform Init
       run: terraform init -reconfigure
-      working-directory: ./infra/env/${{ env.VERSION }}
+      working-directory: ./infra/env
 
     - name: Terraform Format Check
       run: terraform fmt -check
-      working-directory: ./infra/env/${{ env.VERSION }}
+      working-directory: ./infra/env
 
     - name: Azure Login (Required for Firewall Punch)
       uses: azure/login@v2
@@ -63,7 +54,7 @@ jobs:
 
     - name: Terraform Plan
       run: terraform plan -input=false -out=tfplan
-      working-directory: ./infra/env/${{ env.VERSION }}
+      working-directory: ./infra/env
 
     - name: Firewall Clean - Remove Plan Runner IP
       if: always()
@@ -78,12 +69,12 @@ jobs:
     - name: Upload Terraform Plan Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: tfplan-${{ env.VERSION }}
-        path: ./infra/env/${{ env.VERSION }}/tfplan
+        name: tfplan
+        path: ./infra/env/tfplan
         retention-days: 1
 
   terraform-apply:
-    name: 'Terraform Apply (${{ github.event.inputs.environment_version }})'
+    name: 'Terraform Apply'
     runs-on: ubuntu-latest
     needs: [terraform-plan]
     environment: 'production'
@@ -92,7 +83,6 @@ jobs:
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       ARM_USE_OIDC: true
-      VERSION: ${{ github.event.inputs.environment_version }}
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -104,13 +94,13 @@ jobs:
 
     - name: Terraform Init
       run: terraform init -reconfigure
-      working-directory: ./infra/env/${{ env.VERSION }}
+      working-directory: ./infra/env
 
     - name: Download Terraform Plan Artifact
       uses: actions/download-artifact@v4
       with:
-        name: tfplan-${{ env.VERSION }}
-        path: ./infra/env/${{ env.VERSION }}
+        name: tfplam
+        path: ./infra/env
 
     - name: Azure Login (Required for Firewall Punch)
       uses: azure/login@v2
@@ -130,7 +120,7 @@ jobs:
 
     - name: Terraform Apply
       run: terraform apply -auto-approve tfplan
-      working-directory: ./infra/env/${{ env.VERSION }}
+      working-directory: ./infra/env
 
     - name: Firewall Clean - Remove Apply Runner IP
       if: always()

@@ -1,4 +1,4 @@
-# 🚀 Azure Data Platform V1 - Setup & Deployment Guide
+# 🚀 Azure Data Platform - Setup & Deployment Guide
 
 This document contains the complete step-by-step matrix for initializing, deploying, validating, and cleaning up version 1 of the end-to-end F1 Data Platform on Azure. The framework utilizes Terraform for Core Infrastructure and GitHub Actions for the Agentic CI/CD pipelines.
 
