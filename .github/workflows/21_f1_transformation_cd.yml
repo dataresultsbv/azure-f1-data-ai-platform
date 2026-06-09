@@ -23,7 +23,7 @@ env:
 jobs:
   lint:
     if: github.event_name != 'workflow_run'
-    uses: ./.github/workflows/90_reusable-lint.yml
+    uses: ./.github/workflows/90_reusable_lint.yml
   build-and-run-transformation:
     name: 'Build and Run Transformation'
     needs: lint
