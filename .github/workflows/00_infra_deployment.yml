@@ -99,7 +99,7 @@ jobs:
     - name: Download Terraform Plan Artifact
       uses: actions/download-artifact@v4
       with:
-        name: tfplam
+        name: tfplan
         path: ./infra/env
 
     - name: Azure Login (Required for Firewall Punch)
