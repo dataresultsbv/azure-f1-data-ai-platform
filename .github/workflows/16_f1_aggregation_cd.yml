@@ -23,8 +23,15 @@ env:
   GOLD_CONTAINER_NAME: 'gold'
 
 jobs:
+  lint:
+    if: github.event_name != 'workflow_run'
+    uses: ./.github/workflows/reusable-lint.yml
   build-and-run-aggregation:
-    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'}}
+    needs: lint
+    if: |
+      always() &&
+      (needs.lint.result == 'success' || needs.lint.result == 'skipped') &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
 
     steps:

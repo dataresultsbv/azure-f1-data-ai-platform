@@ -1,0 +1,27 @@
+name: 'Reusable Code Quality'
+
+on:
+  workflow_call:
+
+jobs:
+  lint-and-format:
+    name: 'Execute Global Code Quality Checks'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install Ruff
+      run: pip install ruff
+
+    - name: Run Ruff Linter
+      run: ruff check .
+
+    - name: Run Ruff Formatter Check
+      run: ruff format --check .

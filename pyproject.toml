@@ -1,0 +1,14 @@
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+# E/W: PEP8 style rules, F: Pyflakes (bugs), I: Isort (clean imports)
+select = ["E", "W", "F", "I"]
+ignore = []
+
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__"
+]

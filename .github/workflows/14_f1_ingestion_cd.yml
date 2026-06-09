@@ -20,8 +20,11 @@ env:
   END_SEASON: '2025'
 
 jobs:
+  lint:
+    uses: ./.github/workflows/reusable-lint.yml
   build-and-push:
     name: 'Build, Push image to ACR. Run on ACI'
+    needs: lint
     runs-on: ubuntu-latest
 
     steps:
