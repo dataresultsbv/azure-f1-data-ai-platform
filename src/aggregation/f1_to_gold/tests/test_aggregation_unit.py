@@ -1,11 +1,9 @@
-from f1_to_gold import GoldAggregationConfig,GoldAggregationEngine
+from f1_to_gold import GoldAggregationConfig, GoldAggregationEngine
+
 
 def test_extract_account_name(monkeypatch):
 
-    monkeypatch.setenv(
-        "AZURE_STORAGE_ACCOUNT_URL",
-        "https://f1storage.dfs.core.windows.net"
-    )
+    monkeypatch.setenv("AZURE_STORAGE_ACCOUNT_URL", "https://f1storage.dfs.core.windows.net")
 
     config = GoldAggregationConfig()
 
@@ -14,20 +12,11 @@ def test_extract_account_name(monkeypatch):
 
 def test_config_reads_environment_variables(monkeypatch):
 
-    monkeypatch.setenv(
-        "AZURE_STORAGE_ACCOUNT_URL",
-        "https://f1storage.dfs.core.windows.net"
-    )
+    monkeypatch.setenv("AZURE_STORAGE_ACCOUNT_URL", "https://f1storage.dfs.core.windows.net")
 
-    monkeypatch.setenv(
-        "START_SEASON",
-        "2020"
-    )
+    monkeypatch.setenv("START_SEASON", "2020")
 
-    monkeypatch.setenv(
-        "END_SEASON",
-        "2024"
-    )
+    monkeypatch.setenv("END_SEASON", "2024")
 
     config = GoldAggregationConfig()
 
@@ -37,10 +26,7 @@ def test_config_reads_environment_variables(monkeypatch):
 
 def test_engine_builds_storage_paths(mock_config, mock_client):
 
-    engine = GoldAggregationEngine(
-        mock_config,
-        mock_client
-    )
+    engine = GoldAggregationEngine(mock_config, mock_client)
 
     assert "race_results" in engine.silver_race_results
 

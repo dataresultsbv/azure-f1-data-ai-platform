@@ -1,6 +1,5 @@
 import pytest
-import polars as pl
-from unittest.mock import MagicMock
+
 
 @pytest.fixture
 def mock_bronze_results_json() -> bytes:
@@ -18,7 +17,12 @@ def mock_bronze_results_json() -> bytes:
                             "circuitId": "bahrain",
                             "circuitName": "Bahrain International Circuit",
                             "url": "http://mock.url",
-                            "Location": {"locality": "Sakhir", "country": "Bahrain", "lat": "26.0325", "long": "50.5106"}
+                            "Location": {
+                                "locality": "Sakhir",
+                                "country": "Bahrain",
+                                "lat": "26.0325",
+                                "long": "50.5106",
+                            }
                         },
                         "date": "2024-03-02",
                         "time": "15:00:00Z",

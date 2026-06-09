@@ -1,8 +1,7 @@
 import duckdb
 
-def test_driver_season_performance_aggregation(
-    parquet_test_data
-):
+
+def test_driver_season_performance_aggregation(parquet_test_data):
 
     con = duckdb.connect()
 

@@ -1,9 +1,9 @@
 import os
+
 import pytest
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util import Retry
-from f1_api_ingestion import F1CLIENT, ADLSUPLOADER
+from f1_api_ingestion import ADLSUPLOADER, F1CLIENT
+
 
 @pytest.mark.integration
 def test_live_api_contract_verification():
@@ -23,14 +23,14 @@ def test_live_api_contract_verification():
 
 @pytest.mark.integration
 @pytest.mark.skipif(
-    os.getenv("STORAGE_ACCOUNT_NAME") is None, 
-    reason="Skipping live Azure test; STORAGE_ACCOUNT_NAME environment variable not set."
+    os.getenv("STORAGE_ACCOUNT_NAME") is None,
+    reason="Skipping live Azure test; STORAGE_ACCOUNT_NAME environment variable not set.",
 )
 def test_live_azure_connectivity_and_upload():
     """Attempts a real raw upload to your development Azure Data Lake tier."""
     account_name = os.environ["STORAGE_ACCOUNT_NAME"]
     container_name = os.getenv("CONTAINER_NAME", "bronze")
-    
+
     test_blob_path = "test_integration/smoke_test.json"
     test_payload = {"status": "integration_test_active", "engine": "pytest"}
 

@@ -1,5 +1,7 @@
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
+
 
 @pytest.fixture
 def sample_f1_json():
@@ -8,15 +10,11 @@ def sample_f1_json():
             "total": "1",
             "RaceTable": {
                 "season": "2024",
-                "Races": [
-                    {
-                        "round": "1",
-                        "raceName": "Bahrain Grand Prix"
-                    }
-                ]
-            }
+                "Races": [{"round": "1", "raceName": "Bahrain Grand Prix"}],
+            },
         }
     }
+
 
 @pytest.fixture
 def mock_api_client():
@@ -26,6 +24,7 @@ def mock_api_client():
     client.fetch_driver_standings.return_value = {"dataType": "driver_standings"}
     client.fetch_constructor_standings.return_value = {"dataType": "constructor_standings"}
     return client
+
 
 @pytest.fixture
 def mock_uploader():

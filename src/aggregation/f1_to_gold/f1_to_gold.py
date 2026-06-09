@@ -1,13 +1,14 @@
-import os
 import logging
+import os
 import sys
 import urllib.parse
+
 import duckdb
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler(sys.stdout)]
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
 logger = logging.getLogger(__name__)
 logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel(logging.WARNING)
@@ -16,6 +17,7 @@ logging.getLogger("azure.identity").setLevel(logging.WARNING)
 
 class GoldAggregationConfig:
     """Manages pipeline configuration and environment variable loading."""
+
     def __init__(self):
         self.storage_url = os.getenv("AZURE_STORAGE_ACCOUNT_URL")
         # Separate variables for silver and gold root containers
@@ -23,18 +25,18 @@ class GoldAggregationConfig:
         self.gold_container = os.getenv("GOLD_CONTAINER_NAME", "gold")
         self.start_season = int(os.getenv("START_SEASON", "2014"))
         self.end_season = int(os.getenv("END_SEASON", "2025"))
-        
+
         if not self.storage_url:
             logger.error("Missing mandatory environment variable: AZURE_STORAGE_ACCOUNT_URL")
             sys.exit(1)
-            
+
         self.account_name = self._extract_account_name(self.storage_url)
 
     def _extract_account_name(self, url_string):
         """Extracts the storage account name from the full Azure Blob URL."""
         try:
             parsed_url = urllib.parse.urlparse(url_string)
-            return parsed_url.netloc.split('.')[0]
+            return parsed_url.netloc.split(".")[0]
         except Exception as e:
             logger.error(f"Failed to parse storage account name from URL '{url_string}': {e}")
             raise
@@ -42,9 +44,10 @@ class GoldAggregationConfig:
 
 class DuckDBCloudClient:
     """Handles initialization, extensions, and cloud security contexts for DuckDB."""
+
     def __init__(self, config: GoldAggregationConfig):
         self.config = config
-        self.con = duckdb.connect(database=':memory:')
+        self.con = duckdb.connect(database=":memory:")
         self._initialize_extensions()
         self._authenticate()
 
@@ -52,14 +55,16 @@ class DuckDBCloudClient:
         """Loads required core cloud drivers and configures network options."""
         logger.info("Installing and loading DuckDB Azure extension...")
         self.con.execute("INSTALL azure; LOAD azure;")
-        
+
         # Fix for Debian certificate visibility: force transport type to curl
         logger.info("Setting global Azure transport network type to 'curl'...")
         self.con.execute("SET GLOBAL azure_transport_option_type = 'curl';")
 
     def _authenticate(self):
         """Sets up secure User-Assigned Managed Identity tracking for cloud paths."""
-        logger.info(f"Configuring Managed Identity secret tracking for account: {self.config.account_name}")
+        logger.info(
+            f"Configuring Managed Identity secret tracking for account: {self.config.account_name}"
+        )
         self.con.execute(f"""
             CREATE SECRET azure_identity (
                 TYPE AZURE,
@@ -75,21 +80,24 @@ class DuckDBCloudClient:
 
 class GoldAggregationEngine:
     """Orchestrates structural aggregations from partitioned Silver Parquet files to Gold."""
+
     def __init__(self, config: GoldAggregationConfig, client: DuckDBCloudClient):
         self.config = config
         self.client = client
-        
+
         # Paths updated to use root-level container targets directly
         self.silver_race_results = f"az://{self.config.silver_container}/race_results/*/*.parquet"
-        self.silver_driver_standings = f"az://{self.config.silver_container}/driver_standings/*/*.parquet"
+        self.silver_driver_standings = (
+            f"az://{self.config.silver_container}/driver_standings/*/*.parquet"
+        )
         self.silver_drivers = f"az://{self.config.silver_container}/drivers/*.parquet"
-        
+
         self.gold_destination = f"az://{self.config.gold_container}/driver_season_summary.parquet"
 
     def process(self):
         """Executes analytical logic and materializes the unified Gold dataset."""
         logger.info("Assembling analytical views and scanning partitioned paths...")
-        
+
         aggregation_sql = f"""
             COPY (
                 WITH season_driver_metrics AS (
@@ -126,7 +134,7 @@ class GoldAggregationEngine:
                     )
                     WHERE rn = 1
                 )
-                SELECT 
+                SELECT
                     m.*,
                     d.forename,
                     d.surname,
@@ -143,8 +151,8 @@ class GoldAggregationEngine:
                 ORDER BY m.season DESC, s.championship_position ASC
             ) TO '{self.gold_destination}' (FORMAT 'PARQUET');
         """
-        
-        logger.info(f"Executing cloud transformations directly into target layer...")
+
+        logger.info("Executing cloud transformations directly into target layer...")
         self.client.execute_query(aggregation_sql)
         logger.info(f"Gold table successfully generated and exported to: {self.gold_destination}")
 
@@ -155,7 +163,7 @@ if __name__ == "__main__":
         config = GoldAggregationConfig()
         client = DuckDBCloudClient(config)
         engine = GoldAggregationEngine(config, client)
-        
+
         engine.process()
         logger.info("Pipeline execution finalized successfully. Exiting clean.")
     except Exception as e:

@@ -1,13 +1,13 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
+from f1_api_ingestion import ADLSUPLOADER, F1CLIENT, INGESTIONPIPELINE
 from requests.exceptions import HTTPError
-
-from f1_api_ingestion import F1CLIENT, ADLSUPLOADER, INGESTIONPIPELINE
-
 
 # ==============================================================================
 # F1CLIENT UNIT TESTS
 # ==============================================================================
+
 
 @patch("f1_api_ingestion.requests.Session.get")
 def test_f1_client_fetch_season_results_success(mock_get, sample_f1_json):
@@ -48,6 +48,7 @@ def test_f1_client_handles_http_errors(mock_get):
 # ADLSUPLOADER UNIT TESTS
 # ==============================================================================
 
+
 @patch("f1_api_ingestion.BlobServiceClient")
 @patch("f1_api_ingestion.DefaultAzureCredential")
 def test_adls_uploader_initialization(mock_cred, mock_blob_service):
@@ -55,9 +56,7 @@ def test_adls_uploader_initialization(mock_cred, mock_blob_service):
 
     mock_container_client = MagicMock()
 
-    mock_blob_service.return_value.get_container_client.return_value = (
-        mock_container_client
-    )
+    mock_blob_service.return_value.get_container_client.return_value = mock_container_client
 
     uploader = ADLSUPLOADER(
         storage_account_name="testsa",
@@ -75,6 +74,7 @@ def test_adls_uploader_initialization(mock_cred, mock_blob_service):
 # ==============================================================================
 # INGESTIONPIPELINE ORCHESTRATOR UNIT TESTS
 # ==============================================================================
+
 
 def test_pipeline_orchestrator_happy_path(mock_api_client, mock_uploader):
     """Verifies that for a 1-year range, all 3 extractions run and upload to the right paths."""
