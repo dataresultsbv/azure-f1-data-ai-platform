@@ -3,12 +3,17 @@ from unittest.mock import MagicMock
 
 @pytest.fixture
 def sample_f1_json():
-    """Provides a realistic minimal mock payload from the Ergast/Jolpica API."""
     return {
         "MRData": {
+            "total": "1",
             "RaceTable": {
                 "season": "2024",
-                "Races": [{"round": "1", "raceName": "Bahrain Grand Prix"}]
+                "Races": [
+                    {
+                        "round": "1",
+                        "raceName": "Bahrain Grand Prix"
+                    }
+                ]
             }
         }
     }
