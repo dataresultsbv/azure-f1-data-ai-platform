@@ -38,3 +38,6 @@ static/data
 # Local data cache/Parquet sources
 sources/**/*.parquet
 queries/.env
+
+# ruff folders
+.ruff_cache
